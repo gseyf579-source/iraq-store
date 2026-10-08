@@ -1,14 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iraqi E-Commerce Store</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    .product-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-    .cart-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 20px; }
-    button { background: #28a745; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; }
-    input, select { width: 100%; padding: 8px; margin: 5px 0 15px; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 15px; max-width: 800px; margin: auto; background-color: #f4f6f8; color: #333; }
+    h1, h2, h3 { color: #222; }
+    .product-card { background: white; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
+    .product-img { width: 100%; max-width: 180px; height: auto; border-radius: 8px; margin-bottom: 10px; object-fit: cover; }
+    .cart-section { background: white; padding: 20px; border-radius: 10px; margin-top: 25px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    button { background: #28a745; color: white; border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 6px; width: 100%; font-weight: bold; }
+    button:hover { background: #218838; }
+    input, select { width: 100%; padding: 10px; margin: 6px 0 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -31,10 +35,24 @@
 
     <label>المحافظة:</label>
     <select id="cust-gov">
-      <option value="Baghdad">بغداد</option>
-      <option value="Basra">البصرة</option>
-      <option value="Erbil">أربيل</option>
-      <option value="Najaf">النجف</option>
+      <option value="Baghdad">بغداد (Baghdad)</option>
+      <option value="Basra">البصرة (Basra)</option>
+      <option value="Nineveh">نينوى / الموصل (Nineveh)</option>
+      <option value="Erbil">أربيل (Erbil)</option>
+      <option value="Sulaymaniyah">السليمانية (Sulaymaniyah)</option>
+      <option value="Duhok">دهوك (Duhok)</option>
+      <option value="Kirkuk">كركوك (Kirkuk)</option>
+      <option value="Anbar">الأنبار (Anbar)</option>
+      <option value="Diyala">ديالى (Diyala)</option>
+      <option value="Babil">بابل (Babil)</option>
+      <option value="Karbala">كربلاء المقدسة (Karbala)</option>
+      <option value="Najaf">النجف الأشرف (Najaf)</option>
+      <option value="Wasit">واسط / الكوت (Wasit)</option>
+      <option value="Qadisiyyah">القادسية / الديوانية (Qadisiyyah)</option>
+      <option value="Maysan">ميسان / العمارة (Maysan)</option>
+      <option value="DhiQar">ذي قار / الناصرية (Dhi Qar)</option>
+      <option value="Muthanna">المثنى / السماوة (Muthanna)</option>
+      <option value="Halabja">حلبجة (Halabja)</option>
     </select>
 
     <label>العنوان التفصيلي:</label>
@@ -54,7 +72,7 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
     let cart = [];
 
-    // 1. Fetch Products from Google Sheets on Page Load
+    // 1. Fetch Products from Google Sheets
     async function loadProducts() {
       try {
         const res = await fetch(API_URL);
@@ -67,6 +85,7 @@
           data.products.forEach(p => {
             listDiv.innerHTML += `
               <div class="product-card">
+                ${p.image_url ? `<img src="${p.image_url}" alt="${p.name_ar}" class="product-img">` : ''}
                 <h3>${p.name_ar} (${p.name_en})</h3>
                 <p>السعر: ${p.price} د.ع</p>
                 <button onclick="addToCart('${p.id}', '${p.name_ar}', ${p.price})">إضافة إلى السلة</button>
@@ -102,7 +121,7 @@
       cartDiv.innerHTML = cart.map(i => `<p>${i.name_ar} × ${i.quantity} = ${i.price * i.quantity} د.ع</p>`).join('');
     }
 
-    // 4. Submit Order to Google Apps Script
+    // 4. Submit Order to Backend & Clear Form
     async function submitOrder() {
       if (cart.length === 0) return alert("الرجاء إضافة منتجات للسلة أولاً");
 
@@ -125,8 +144,18 @@
 
         if (result.status === "success") {
           alert("تم إرسال طلبك بنجاح! رقم الطلب: " + result.orderId);
+          
+          // Clear Cart
           cart = [];
           renderCart();
+
+          // Reset Form Input Fields
+          document.getElementById('cust-name').value = '';
+          document.getElementById('cust-phone').value = '';
+          document.getElementById('cust-address').value = '';
+          document.getElementById('cust-gov').selectedIndex = 0;
+          document.getElementById('pay-method').selectedIndex = 0;
+
         } else {
           alert("حدث خطأ أثناء إرسال الطلب");
         }
