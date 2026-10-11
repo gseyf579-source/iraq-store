@@ -3,168 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iraqi E-Commerce Store</title>
+  <title>متجري الإلكتروني - العراق</title>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; padding: 15px; max-width: 800px; margin: auto; background-color: #f4f6f8; color: #333; }
-    h1, h2, h3 { color: #222; }
-    .product-card { background: white; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
-    .product-img { width: 100%; max-width: 180px; height: auto; border-radius: 8px; margin-bottom: 10px; object-fit: cover; }
-    .cart-section { background: white; padding: 20px; border-radius: 10px; margin-top: 25px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-    button { background: #28a745; color: white; border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 6px; width: 100%; font-weight: bold; }
-    button:hover { background: #218838; }
-    input, select { width: 100%; padding: 10px; margin: 6px 0 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+    body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 10px; color: #333; }
+    h1, h2 { text-align: center; color: #2c3e50; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .product-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .product-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; }
+    .product-card h3 { font-size: 14px; margin: 5px 0; }
+    .product-card p { font-size: 13px; color: #e74c3c; font-weight: bold; margin: 5px 0; }
+    .product-card button { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    
+    #cart-section { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px; }
+    
+    #checkout-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: bold; }
+    .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    .btn-submit { background: #2980b9; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .whatsapp-btn { display: inline-block; background-color: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 15px; text-align: center; width: 100%; box-sizing: border-box; }
   </style>
 </head>
 <body>
 
-  <h1>المتجر الإلكتروني</h1>
-  
-  <h2>المنتجات</h2>
-  <div id="product-list">جاري تحميل المنتجات...</div>
+  <h1>متجر العراق الإلكتروني</h1>
 
-  <div class="cart-section">
-    <h2>السلة وإتمام الطلب</h2>
+  <!-- Product List Section -->
+  <h2>المنتجات المتوفرة</h2>
+  <div id="product-list" class="product-grid">
+    <p style="text-align: center; grid-column: 1 / -1;">جاري تحميل المنتجات...</p>
+  </div>
+
+  <!-- Cart Section -->
+  <div id="cart-section">
+    <h2>سلة التسوق</h2>
     <div id="cart-items">السلة فارغة</div>
     <hr>
-    <h3>بيانات الزبون</h3>
-    <label>الاسم الكامل:</label>
-    <input type="text" id="cust-name" placeholder="على كريم">
+    <p><strong>المجموع الكلي للمنتجات: <span id="cart-total">0</span> د.ع</strong></p>
+  </div>
 
-    <label>رقم الهاتف:</label>
-    <input type="text" id="cust-phone" placeholder="9647782292062">
-
-    <label>المحافظة:</label>
-    <select id="cust-gov">
-      <option value="Baghdad">بغداد (Baghdad)</option>
-      <option value="Basra">البصرة (Basra)</option>
-      <option value="Nineveh">نينوى / الموصل (Nineveh)</option>
-      <option value="Erbil">أربيل (Erbil)</option>
-      <option value="Sulaymaniyah">السليمانية (Sulaymaniyah)</option>
-      <option value="Duhok">دهوك (Duhok)</option>
-      <option value="Kirkuk">كركوك (Kirkuk)</option>
-      <option value="Saladin">صلاح الدين (Saladin)</option>
-      <option value="Anbar">الأنبار (Anbar)</option>
-      <option value="Diyala">ديالى (Diyala)</option>
-      <option value="Babil">بابل (Babil)</option>
-      <option value="Karbala">كربلاء المقدسة (Karbala)</option>
-      <option value="Najaf">النجف الأشرف (Najaf)</option>
-      <option value="Wasit">واسط / الكوت (Wasit)</option>
-      <option value="Qadisiyyah">القادسية / الديوانية (Qadisiyyah)</option>
-      <option value="Maysan">ميسان / العمارة (Maysan)</option>
-      <option value="DhiQar">ذي قار / الناصرية (Dhi Qar)</option>
-      <option value="Muthanna">المثنى / السماوة (Muthanna)</option>
-      <option value="Halabja">حلبجة (Halabja)</option>
-    </select>
-
-    <label>العنوان التفصيلي:</label>
-    <input type="text" id="cust-address" placeholder="المنصور - شارع 14">
-
-    <label>طريقة الدفع:</label>
-    <select id="pay-method">
-      <option value="Cash On Delivery">الدفع عند الاستلام (COD)</option>
-      <option value="ZainCash">زين كاش (ZainCash)</option>
-      <option value="QiCard">كي کارت (QiCard)</option>
-    </select>
-
-    <button onclick="submitOrder()">إرسال الطلب الآن</button>
+  <!-- Checkout Container -->
+  <div id="checkout-container">
+    <h2>إتمام الطلب</h2>
+    <form id="order-form" onsubmit="submitOrder(event)">
+      <div class="form-group">
+        <label for="customer_name">الاسم الكامل:</label>
+        <input type="text" id="customer_name" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">رقم الهاتف (مثل: 07782292062):</label>
+        <input type="tel" id="phone" required>
+      </div>
+      <div class="form-group">
+        <label for="governorate">المحافظة:</label>
+        <select id="governorate" required>
+          <option value="">اختر المحافظة</option>
+          <option value="Baghdad">بغداد</option>
+          <option value="Basra">البصرة</option>
+          <option value="Nineveh">نينوى</option>
+          <option value="Erbil">أربيل</option>
+          <option value="Najaf">النجف</option>
+          <option value="Karbala">كربلاء</option>
+          <option value="Sulaymaniyah">السليمانية</option>
+          <option value="Kirkuk">كركوك</option>
+          <option value="Diyala">ديالى</option>
+          <option value="Anbar">الانبار</option>
+          <option value="Babil">بابل</option>
+          <option value="Wasit">واسط</option>
+          <option value="Salah al-Din">صلاح الدين</option>
+          <option value="Duhok">دهوك</option>
+          <option value="Diwaniyah">القادسية</option>
+          <option value="Maysan">ميسان</option>
+          <option value="Muthanna">السماوة</option>
+          <option value="Dhi Qar">ذي قار</option>
+          <option value="Halabja">حلبجة</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="district_address">العنوان التفصيلي (المنطقة / الشارع / الحلة):</label>
+        <input type="text" id="district_address" required>
+      </div>
+      <div class="form-group">
+        <label for="payment_method">طريقة الدفع:</label>
+        <select id="payment_method" required>
+          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
+          <option value="ZainCash">زين كاش (ZainCash)</option>
+          <option value="QiCard">كي كارد (QiCard)</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-submit">تأكيد وإرسال الطلب</button>
+    </form>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
-    let cart = [];
+    // Web App URL الخاص بك
+    const API_URL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec"; 
 
-    // 1. Fetch Products from Google Sheets
+    // رقم واتساب المتجر الخص بك
+    const STORE_WHATSAPP = "9647782292062";
+
+    let cart = [];
+    let productsList = [];
+
+    // جلب المنتجات عند فتح الصفحة
     async function loadProducts() {
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
+        productsList = data.products || [];
         
         const listDiv = document.getElementById('product-list');
         listDiv.innerHTML = '';
 
-        if (data.products && data.products.length > 0) {
-          data.products.forEach(p => {
+        if (productsList.length > 0) {
+          productsList.forEach(p => {
+            const imageHtml = p.image_url && p.image_url.trim() !== "" 
+              ? `<img src="${p.image_url}" alt="${p.name_ar}" class="product-img" onerror="this.style.display='none'">` 
+              : '';
+
             listDiv.innerHTML += `
               <div class="product-card">
-                ${p.image_url ? `<img src="${p.image_url}" alt="${p.name_ar}" class="product-img">` : ''}
-                <h3>${p.name_ar} (${p.name_en})</h3>
-                <p>السعر: ${p.price} د.ع</p>
-                <button onclick="addToCart('${p.id}', '${p.name_ar}', ${p.price})">إضافة إلى السلة</button>
+                ${imageHtml}
+                <h3>${p.name_ar}</h3>
+                <p>${p.price} د.ع</p>
+                <button onclick="addToCart('${p.id}')">إضافة للسلة</button>
               </div>
             `;
           });
         } else {
-          listDiv.innerHTML = 'لا توجد منتجات حالياً';
+          listDiv.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">لا توجد منتجات متاحة حالياً</p>';
         }
       } catch (err) {
         console.error("Error loading products:", err);
       }
     }
 
-    // 2. Add Item to Cart
-    function addToCart(id, name, price) {
-      const existing = cart.find(item => item.product_id === id);
+    function addToCart(productId) {
+      const product = productsList.find(p => p.id === productId);
+      if (!product) return;
+
+      const existing = cart.find(item => item.product_id === productId);
       if (existing) {
-        existing.quantity++;
+        existing.quantity += 1;
       } else {
-        cart.push({ product_id: id, name_ar: name, price: price, quantity: 1 });
+        cart.push({
+          product_id: product.id,
+          name: product.name_ar,
+          price: Number(product.price),
+          quantity: 1
+        });
       }
       renderCart();
     }
 
-    // 3. Render Cart
     function renderCart() {
       const cartDiv = document.getElementById('cart-items');
+      const totalSpan = document.getElementById('cart-total');
+
       if (cart.length === 0) {
         cartDiv.innerHTML = 'السلة فارغة';
+        totalSpan.innerText = '0';
         return;
       }
-      cartDiv.innerHTML = cart.map(i => `<p>${i.name_ar} × ${i.quantity} = ${i.price * i.quantity} د.ع</p>`).join('');
+
+      cartDiv.innerHTML = '';
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        total += item.price * item.quantity;
+        cartDiv.innerHTML += `
+          <div class="cart-item">
+            <span>${item.name} (${item.quantity})</span>
+            <span>${item.price * item.quantity} د.ع</span>
+            <button onclick="removeFromCart(${index})" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">حذف</button>
+          </div>
+        `;
+      });
+
+      totalSpan.innerText = total;
     }
 
-    // 4. Submit Order to Backend & Clear Form
-    async function submitOrder() {
-      if (cart.length === 0) return alert("الرجاء إضافة منتجات للسلة أولاً");
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
 
-      const payload = {
+    async function submitOrder(event) {
+      event.preventDefault();
+
+      if (cart.length === 0) {
+        alert("سلة التسوق فارغة!");
+        return;
+      }
+
+      const customerName = document.getElementById('customer_name').value;
+      const phone = document.getElementById('phone').value;
+      const governorate = document.getElementById('governorate').value;
+      const districtAddress = document.getElementById('district_address').value;
+      const paymentMethod = document.getElementById('payment_method').value;
+
+      const orderData = {
         action: "create_order",
-        customer_name: document.getElementById('cust-name').value,
-        phone: document.getElementById('cust-phone').value,
-        governorate: document.getElementById('cust-gov').value,
-        district_address: document.getElementById('cust-address').value,
-        payment_method: document.getElementById('pay-method').value,
-        items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity }))
+        customer_name: customerName,
+        phone: phone,
+        governorate: governorate,
+        district_address: districtAddress,
+        payment_method: paymentMethod,
+        items: cart
       };
 
+      const submitBtn = document.querySelector('.btn-submit');
+      submitBtn.innerText = "جاري إرسال الطلب...";
+      submitBtn.disabled = true;
+
       try {
-        const res = await fetch(API_URL, {
+        // إرسال البيانات إلى Google Apps Script
+        fetch(API_URL, {
           method: "POST",
-          body: JSON.stringify(payload)
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(orderData)
         });
-        const result = await res.json();
 
-        if (result.status === "success") {
-          alert("تم إرسال طلبك بنجاح! رقم الطلب: " + result.orderId);
-          
-          // Clear Cart
-          cart = [];
-          renderCart();
+        // تجهيز نص رسالة الواتساب المتكاملة
+        const message = `مرحباً، أود تأكيد طلبي الجديد:%0A` +
+                        `*الاسم:* ${customerName}%0A` +
+                        `*رقم الهاتف:* ${phone}%0A` +
+                        `*المحافظة:* ${governorate}%0A` +
+                        `*العنوان:* ${districtAddress}%0A` +
+                        `*طريقة الدفع:* ${paymentMethod}`;
+        
+        const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${message}`;
 
-          // Reset Form Input Fields
-          document.getElementById('cust-name').value = '';
-          document.getElementById('cust-phone').value = '';
-          document.getElementById('cust-address').value = '';
-          document.getElementById('cust-gov').selectedIndex = 0;
-          document.getElementById('pay-method').selectedIndex = 0;
+        // إظهار شاشة النجاح ورابط الواتساب الفوري مباشرة
+        const checkoutContainer = document.getElementById('checkout-container');
+        checkoutContainer.innerHTML = `
+          <div style="text-align: center; padding: 20px;">
+            <h2 style="color: #27ae60;">تم إرسال طلبك بنجاح!</h2>
+            <p>شكراً لك يا <strong>${customerName}</strong>، تم تسجل طلبك بنجاح في النظام.</p>
+            <p>لتأكيد طلبك وتجهيز الشحن بسرعة، اضغط على الزر أدناه لإرسال التفاصيل عبر واتساب:</p>
+            <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
+              تأكيد الطلب عبر واتساب 📱
+            </a>
+          </div>
+        `;
 
-        } else {
-          alert("حدث خطأ أثناء إرسال الطلب");
-        }
+        // تفريغ السلة بعد إتمام الطلب
+        cart = [];
+        renderCart();
+
       } catch (err) {
-        console.error("Error submitting order:", err);
+        console.error("Order submission error:", err);
+        alert("فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.");
+        submitBtn.innerText = "تأكيد وإرسال الطلب";
+        submitBtn.disabled = false;
       }
     }
 
+    // تحميل المنتجات عند فتح الصفحة
     loadProducts();
   </script>
 </body>
