@@ -16,6 +16,8 @@
     
     #cart-section { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin: 5px 0; }
+    .total-row { font-size: 16px; color: #27ae60; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; }
     
     #checkout-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .form-group { margin-bottom: 12px; }
@@ -40,7 +42,18 @@
     <h2>سلة التسوق</h2>
     <div id="cart-items">السلة فارغة</div>
     <hr>
-    <p><strong>المجموع الكلي للمنتجات: <span id="cart-total">0</span> د.ع</strong></p>
+    <div class="summary-row">
+      <span>مجموع المنتجات:</span>
+      <span><span id="cart-subtotal">0</span> د.ع</span>
+    </div>
+    <div class="summary-row">
+      <span>أجور التوصيل:</span>
+      <span><span id="delivery-fee">0</span> د.ع</span>
+    </div>
+    <div class="summary-row total-row">
+      <span>المجموع الكلي:</span>
+      <span><span id="cart-total">0</span> د.ع</span>
+    </div>
   </div>
 
   <!-- Checkout Container -->
@@ -57,7 +70,7 @@
       </div>
       <div class="form-group">
         <label for="governorate">المحافظة:</label>
-        <select id="governorate" required>
+        <select id="governorate" onchange="updateDeliveryFee()" required>
           <option value="">اختر المحافظة</option>
           <option value="Baghdad">بغداد</option>
           <option value="Basra">البصرة</option>
@@ -81,7 +94,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="district_address">العنوان التفصيلي (المنطقة / الشارع / الحلة):</label>
+        <label for="district_address">العنوان التفصيلي (المنطقة / الشارع / المحلة):</label>
         <input type="text" id="district_address" required>
       </div>
       <div class="form-group">
@@ -97,21 +110,21 @@
   </div>
 
   <script>
-    // Web App URL الخاص بك
     const API_URL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec"; 
-
-    // رقم واتساب المتجر الخص بك
     const STORE_WHATSAPP = "9647782292062";
 
     let cart = [];
     let productsList = [];
+    let deliveryZones = {};
+    let currentDeliveryFee = 0;
 
-    // جلب المنتجات عند فتح الصفحة
+    // جلب المنتجات وأجور التوصيل عند فتح الصفحة
     async function loadProducts() {
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
         productsList = data.products || [];
+        deliveryZones = data.delivery_zones || {};
         
         const listDiv = document.getElementById('product-list');
         listDiv.innerHTML = '';
@@ -157,21 +170,31 @@
       renderCart();
     }
 
+    function updateDeliveryFee() {
+      const selectedGov = document.getElementById('governorate').value;
+      currentDeliveryFee = deliveryZones[selectedGov] || 0;
+      renderCart();
+    }
+
     function renderCart() {
       const cartDiv = document.getElementById('cart-items');
+      const subtotalSpan = document.getElementById('cart-subtotal');
+      const deliverySpan = document.getElementById('delivery-fee');
       const totalSpan = document.getElementById('cart-total');
 
       if (cart.length === 0) {
         cartDiv.innerHTML = 'السلة فارغة';
+        subtotalSpan.innerText = '0';
+        deliverySpan.innerText = '0';
         totalSpan.innerText = '0';
         return;
       }
 
       cartDiv.innerHTML = '';
-      let total = 0;
+      let subtotal = 0;
 
       cart.forEach((item, index) => {
-        total += item.price * item.quantity;
+        subtotal += item.price * item.quantity;
         cartDiv.innerHTML += `
           <div class="cart-item">
             <span>${item.name} (${item.quantity})</span>
@@ -181,7 +204,10 @@
         `;
       });
 
-      totalSpan.innerText = total;
+      const grandTotal = subtotal + currentDeliveryFee;
+      subtotalSpan.innerText = subtotal;
+      deliverySpan.innerText = currentDeliveryFee;
+      totalSpan.innerText = grandTotal;
     }
 
     function removeFromCart(index) {
@@ -203,6 +229,9 @@
       const districtAddress = document.getElementById('district_address').value;
       const paymentMethod = document.getElementById('payment_method').value;
 
+      let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      let grandTotal = subtotal + currentDeliveryFee;
+
       const orderData = {
         action: "create_order",
         customer_name: customerName,
@@ -218,7 +247,6 @@
       submitBtn.disabled = true;
 
       try {
-        // إرسال البيانات إلى Google Apps Script
         fetch(API_URL, {
           method: "POST",
           mode: "no-cors",
@@ -226,22 +254,24 @@
           body: JSON.stringify(orderData)
         });
 
-        // تجهيز نص رسالة الواتساب المتكاملة
+        // نص رسالة الواتساب متضمناً أجور التوصيل والمجموع الكلي
         const message = `مرحباً، أود تأكيد طلبي الجديد:%0A` +
                         `*الاسم:* ${customerName}%0A` +
                         `*رقم الهاتف:* ${phone}%0A` +
                         `*المحافظة:* ${governorate}%0A` +
                         `*العنوان:* ${districtAddress}%0A` +
+                        `*أجور التوصيل:* ${currentDeliveryFee} د.ع%0A` +
+                        `*المجموع الكلي:* ${grandTotal} د.ع%0A` +
                         `*طريقة الدفع:* ${paymentMethod}`;
         
         const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${message}`;
 
-        // إظهار شاشة النجاح ورابط الواتساب الفوري مباشرة
         const checkoutContainer = document.getElementById('checkout-container');
         checkoutContainer.innerHTML = `
           <div style="text-align: center; padding: 20px;">
             <h2 style="color: #27ae60;">تم إرسال طلبك بنجاح!</h2>
-            <p>شكراً لك يا <strong>${customerName}</strong>، تم تسجل طلبك بنجاح في النظام.</p>
+            <p>شكراً لك يا <strong>${customerName}</strong>، تم تسجيل طلبك بنجاح في النظام.</p>
+            <p><strong>المجموع الكلي: ${grandTotal} د.ع</strong> (شامل التوصيل: ${currentDeliveryFee} د.ع)</p>
             <p>لتأكيد طلبك وتجهيز الشحن بسرعة، اضغط على الزر أدناه لإرسال التفاصيل عبر واتساب:</p>
             <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
               تأكيد الطلب عبر واتساب 📱
@@ -249,8 +279,8 @@
           </div>
         `;
 
-        // تفريغ السلة بعد إتمام الطلب
         cart = [];
+        currentDeliveryFee = 0;
         renderCart();
 
       } catch (err) {
@@ -261,7 +291,6 @@
       }
     }
 
-    // تحميل المنتجات عند فتح الصفحة
     loadProducts();
   </script>
 </body>
