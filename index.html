@@ -15,7 +15,7 @@
     .product-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; }
     .product-card h3 { font-size: 14px; margin: 5px 0; }
     .price { color: #e74c3c; font-weight: bold; font-size: 13px; margin-bottom: 8px; }
-    .buy-btn { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; }
+    .buy-btn { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: bold; }
     .buy-btn:hover { background-color: #219653; }
     
     .checkout-form { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
@@ -30,19 +30,19 @@
 
   <h1>متجري الإلكتروني</h1>
   
-  <!-- Product Catalog -->
+  <!-- Catalog -->
   <div class="product-grid" id="product-grid">
     <div class="product-card">
       <img src="https://i.postimg.cc/3w9322X8/sample.jpg" alt="منتج 1" class="product-img">
       <h3>سماعة لاسلكية ذكية</h3>
       <div class="price">35,000 د.ع</div>
-      <button class="buy-btn" onclick="selectProduct('سماعة لاسلكية ذكية', '35000 د.ع')">اطلب الآن</button>
+      <button class="buy-btn" type="button" onclick="selectProduct('سماعة لاسلكية ذكية - 35,000 د.ع')">اطلب الآن</button>
     </div>
     <div class="product-card">
       <img src="https://i.postimg.cc/3w9322X8/sample.jpg" alt="منتج 2" class="product-img">
       <h3>ساعة ذكية متطورة</h3>
       <div class="price">55,000 د.ع</div>
-      <button class="buy-btn" onclick="selectProduct('ساعة ذكية متطورة', '55000 د.ع')">اطلب الآن</button>
+      <button class="buy-btn" type="button" onclick="selectProduct('ساعة ذكية متطورة - 55,000 د.ع')">اطلب الآن</button>
     </div>
   </div>
 
@@ -52,7 +52,7 @@
     <form id="orderForm" onsubmit="submitOrder(event)">
       <div class="form-group">
         <label for="selectedProduct">المنتج المختار:</label>
-        <input type="text" id="selectedProduct" readonly placeholder="الرجاء اختيار منتج من الأعلى..." required style="background: #eef2f3; font-weight: bold; color: #c0392b;">
+        <input type="text" id="selectedProduct" readonly placeholder="اضغط على (اطلب الآن) لاختيار منتج" required style="background: #fff3cd; font-weight: bold; color: #856404; border: 1px solid #ffeba2;">
       </div>
       <div class="form-group">
         <label for="customerName">الاسم الكامل:</label>
@@ -66,32 +66,25 @@
         <label for="customerCity">المحافظة:</label>
         <select id="customerCity" required>
           <option value="">اختر المحافظة...</option>
-          <option value="بغداد">بغداد</option>
-          <option value="أربيل">أربيل</option>
-          <option value="البصرة">البصرة</option>
-          <option value="صلاح الدين">صلاح الدين</option>
-          <option value="السليمانية">السليمانية</option>
-          <option value="الموصل">الموصل</option>
-          <option value="كركوك">كركوك</option>
-          <option value="ديالى">ديالى</option>
-          <option value="الأنبار">الأنبار</option>
-          <option value="بابل">بابل</option>
-          <option value="كربلاء">كربلاء</option>
-          <option value="النجف">النجف</option>
-          <option value="ذي قار">ذي قار</option>
-          <option value="ميسان">ميسان</option>
-          <option value="المثنى">المثنى</option>
-          <option value="واسط">واسط</option>
-          <option value="القادسية">القادسية</option>
-          <option value="دهوك">دهوك</option>
+          <option value="بغداد">Baghdad</option>
+          <option value="أربيل">Erbil</option>
+          <option value="البصرة">Basra</option>
+          <option value="صلاح الدين">Salah al-Din</option>
+          <option value="السليمانية">Sulaymaniyah</option>
+          <option value="الموصل">Mosul</option>
+          <option value="كركوك">Kirkuk</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label for="customerAddress">العنوان التفصيلي:</label>
+        <input type="text" id="customerAddress" placeholder="المنطقة - اسم الشارع / قرب معلم معروف">
       </div>
       <div class="form-group">
         <label for="paymentMethod">طريقة الدفع:</label>
         <select id="paymentMethod" required>
-          <option value="الدفع عند الاستلام">الدفع عند الاستلام (Cash on Delivery)</option>
-          <option value="زين كاش">زين كاش (ZainCash)</option>
-          <option value="كي كارت">كي كارت (QiCard)</option>
+          <option value="Cash On Delivery">Cash On Delivery (الدفع عند الاستلام)</option>
+          <option value="ZainCash">ZainCash (زين كاش)</option>
+          <option value="QiCard">QiCard (كي كارت)</option>
         </select>
       </div>
       <button type="submit" class="submit-btn">تأكيد وإرسال الطلب عبر واتساب</button>
@@ -99,9 +92,13 @@
   </div>
 
   <script>
-    function selectProduct(name, price) {
-      document.getElementById('selectedProduct').value = name + " (" + price + ")";
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    function selectProduct(productTitle) {
+      const productInput = document.getElementById('selectedProduct');
+      productInput.value = productTitle;
+      productInput.style.background = "#d4edda";
+      productInput.style.color = "#155724";
+      
+      document.querySelector('.checkout-form').scrollIntoView({ behavior: 'smooth' });
     }
 
     function submitOrder(event) {
@@ -111,54 +108,49 @@
       const name = document.getElementById('customerName').value;
       const phone = document.getElementById('customerPhone').value;
       const city = document.getElementById('customerCity').value;
+      const address = document.getElementById('customerAddress').value || "غير محدد";
       const payment = document.getElementById('paymentMethod').value;
 
       if (!productName) {
-        alert("الرجاء اختيار منتج أولاً!");
+        alert("الرجاء الضغط على زر (اطلب الآن) لاختيار المنتج!");
         return;
       }
 
-      // 1. Google Apps Script Web App URL
+      // 1. Send data to Google Apps Script Backend
       const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
       
-      const formData = {
-        product: productName,
-        name: name,
-        phone: phone,
-        city: city,
-        payment: payment
-      };
-
-      // Post order data to Google Sheets
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      }).catch(error => console.error('Error logging to sheet:', error));
+        body: JSON.stringify({
+          product: productName,
+          name: name,
+          phone: phone,
+          city: city,
+          address: address,
+          payment: payment
+        })
+      }).catch(err => console.error('Error:', err));
 
-      // 2. Build WhatsApp Message with Product Name
+      // 2. Build WhatsApp text format matching your screenshot exact style + adding Product
       const storeWhatsAppNumber = "9647782292062";
       
-      const textMessage = "🛒 *طلب جديد من المتجر*%0A" +
-                          "--------------------------------%0A" +
-                          "📦 *المنتج:* " + encodeURIComponent(productName) + "%0A" +
-                          "👤 *الاسم:* " + encodeURIComponent(name) + "%0A" +
-                          "📱 *الهاتف:* " + encodeURIComponent(phone) + "%0A" +
-                          "📍 *المحافظة:* " + encodeURIComponent(city) + "%0A" +
-                          "💳 *طريقة الدفع:* " + encodeURIComponent(payment) + "%0A" +
-                          "--------------------------------";
+      let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
+                        "📦 *المنتج:* " + productName + "\n" +
+                        "👤 *الاسم:* " + name + "\n" +
+                        "📱 *رقم الهاتف:* " + phone + "\n" +
+                        "📍 *المحافظة:* " + city + "\n" +
+                        "🏠 *العنوان:* " + address + "\n" +
+                        "💳 *طريقة الدفع:* " + payment;
 
-      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + textMessage;
+      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
 
-      // 3. Open WhatsApp
       window.location.href = whatsappURL;
     }
 
-    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log("Service Worker Registered"));
+      navigator.serviceWorker.register('./sw.js');
     }
   </script>
 </body>
