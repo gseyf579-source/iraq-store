@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>متجري الإلكتروني - العراق</title><link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#27ae60">
+  <title>متجري الإلكتروني - العراق</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#27ae60">
+  <meta name="description" content="متجري الإلكتروني في العراق - تسوق أفضل المنتجات مع خدمة الدفع عند الاستلام، زين كاش، وكي كارت.">
   <style>
     body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 10px; color: #333; }
     h1, h2 { text-align: center; color: #2c3e50; }
@@ -12,317 +14,152 @@
     .product-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .product-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; }
     .product-card h3 { font-size: 14px; margin: 5px 0; }
-    .product-card p { font-size: 13px; color: #e74c3c; font-weight: bold; margin: 5px 0; }
-    .product-card button { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .price { color: #e74c3c; font-weight: bold; font-size: 13px; margin-bottom: 8px; }
+    .buy-btn { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; }
+    .buy-btn:hover { background-color: #219653; }
     
-    #cart-section { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px; }
-    .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin: 5px 0; }
-    .total-row { font-size: 16px; color: #27ae60; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; }
-    
-    #checkout-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .checkout-form { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
     .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: bold; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; }
     .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-    
-    .payment-info-box { background: #e8f8f5; border: 1px solid #1abc9c; padding: 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; display: none; }
-    .payment-info-box p { margin: 4px 0; color: #16a085; font-weight: bold; }
-    
-    .btn-submit { background: #2980b9; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    .whatsapp-btn { display: inline-block; background-color: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 15px; text-align: center; width: 100%; box-sizing: border-box; }
+    .submit-btn { background-color: #2980b9; color: white; border: none; padding: 10px; width: 100%; border-radius: 4px; font-size: 15px; cursor: pointer; font-weight: bold; }
+    .submit-btn:hover { background-color: #1f618d; }
   </style>
 </head>
 <body>
 
-  <h1>متجر العراق الإلكتروني</h1>
-
-  <!-- Product List Section -->
-  <h2>المنتجات المتوفرة</h2>
-  <div id="product-list" class="product-grid">
-    <p style="text-align: center; grid-column: 1 / -1;">جاري تحميل المنتجات...</p>
-  </div>
-
-  <!-- Cart Section -->
-  <div id="cart-section">
-    <h2>سلة التسوق</h2>
-    <div id="cart-items">السلة فارغة</div>
-    <hr>
-    <div class="summary-row">
-      <span>مجموع المنتجات:</span>
-      <span><span id="cart-subtotal">0</span> د.ع</span>
+  <h1>متجري الإلكتروني</h1>
+  
+  <!-- Product Catalog -->
+  <div class="product-grid" id="product-grid">
+    <div class="product-card">
+      <img src="https://i.postimg.cc/3w9322X8/sample.jpg" alt="منتج 1" class="product-img">
+      <h3>سماعة لاسلكية ذكية</h3>
+      <div class="price">35,000 د.ع</div>
+      <button class="buy-btn" onclick="selectProduct('سماعة لاسلكية ذكية', '35000 د.ع')">اطلب الآن</button>
     </div>
-    <div class="summary-row">
-      <span>أجور التوصيل:</span>
-      <span><span id="delivery-fee">0</span> د.ع</span>
-    </div>
-    <div class="summary-row total-row">
-      <span>المجموع الكلي:</span>
-      <span><span id="cart-total">0</span> د.ع</span>
+    <div class="product-card">
+      <img src="https://i.postimg.cc/3w9322X8/sample.jpg" alt="منتج 2" class="product-img">
+      <h3>ساعة ذكية متطورة</h3>
+      <div class="price">55,000 د.ع</div>
+      <button class="buy-btn" onclick="selectProduct('ساعة ذكية متطورة', '55000 د.ع')">اطلب الآن</button>
     </div>
   </div>
 
-  <!-- Checkout Container -->
-  <div id="checkout-container">
+  <!-- Checkout Form -->
+  <div class="checkout-form">
     <h2>إتمام الطلب</h2>
-    <form id="order-form" onsubmit="submitOrder(event)">
+    <form id="orderForm" onsubmit="submitOrder(event)">
       <div class="form-group">
-        <label for="customer_name">الاسم الكامل:</label>
-        <input type="text" id="customer_name" required>
+        <label for="selectedProduct">المنتج المختار:</label>
+        <input type="text" id="selectedProduct" readonly placeholder="الرجاء اختيار منتج من الأعلى..." required style="background: #eef2f3; font-weight: bold; color: #c0392b;">
       </div>
       <div class="form-group">
-        <label for="phone">رقم الهاتف (مثل: 07782292062):</label>
-        <input type="tel" id="phone" required>
+        <label for="customerName">الاسم الكامل:</label>
+        <input type="text" id="customerName" required placeholder="أدخل اسمك الكريم">
       </div>
       <div class="form-group">
-        <label for="governorate">المحافظة:</label>
-        <select id="governorate" onchange="updateDeliveryFee()" required>
-          <option value="">اختر المحافظة</option>
-          <option value="Baghdad">بغداد</option>
-          <option value="Basra">البصرة</option>
-          <option value="Nineveh">نينوى</option>
-          <option value="Erbil">أربيل</option>
-          <option value="Najaf">النجف</option>
-          <option value="Karbala">كربلاء</option>
-          <option value="Sulaymaniyah">السليمانية</option>
-          <option value="Kirkuk">كركوك</option>
-          <option value="Diyala">ديالى</option>
-          <option value="Anbar">الانبار</option>
-          <option value="Babil">بابل</option>
-          <option value="Wasit">واسط</option>
-          <option value="Salah al-Din">صلاح الدين</option>
-          <option value="Duhok">دهوك</option>
-          <option value="Diwaniyah">القادسية</option>
-          <option value="Maysan">ميسان</option>
-          <option value="Muthanna">السماوة</option>
-          <option value="Dhi Qar">ذي قار</option>
-          <option value="Halabja">حلبجة</option>
+        <label for="customerPhone">رقم الهاتف:</label>
+        <input type="tel" id="customerPhone" required placeholder="0780xxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label for="customerCity">المحافظة:</label>
+        <select id="customerCity" required>
+          <option value="">اختر المحافظة...</option>
+          <option value="بغداد">بغداد</option>
+          <option value="أربيل">أربيل</option>
+          <option value="البصرة">البصرة</option>
+          <option value="صلاح الدين">صلاح الدين</option>
+          <option value="السليمانية">السليمانية</option>
+          <option value="الموصل">الموصل</option>
+          <option value="كركوك">كركوك</option>
+          <option value="ديالى">ديالى</option>
+          <option value="الأنبار">الأنبار</option>
+          <option value="بابل">بابل</option>
+          <option value="كربلاء">كربلاء</option>
+          <option value="النجف">النجف</option>
+          <option value="ذي قار">ذي قار</option>
+          <option value="ميسان">ميسان</option>
+          <option value="المثنى">المثنى</option>
+          <option value="واسط">واسط</option>
+          <option value="القادسية">القادسية</option>
+          <option value="دهوك">دهوك</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="district_address">العنوان التفصيلي (المنطقة / الشارع / الحلة):</label>
-        <input type="text" id="district_address" required>
-      </div>
-      <div class="form-group">
-        <label for="payment_method">طريقة الدفع:</label>
-        <select id="payment_method" onchange="togglePaymentInstructions()" required>
-          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
-          <option value="ZainCash">زين كاش (ZainCash)</option>
-          <option value="QiCard">كي كارد (QiCard)</option>
+        <label for="paymentMethod">طريقة الدفع:</label>
+        <select id="paymentMethod" required>
+          <option value="الدفع عند الاستلام">الدفع عند الاستلام (Cash on Delivery)</option>
+          <option value="زين كاش">زين كاش (ZainCash)</option>
+          <option value="كي كارت">كي كارت (QiCard)</option>
         </select>
       </div>
-
-      <!-- Dynamic Payment Instructions Box -->
-      <div id="zaincash-info" class="payment-info-box">
-        <p>💳 معلومات الدفع عبر زين كاش:</p>
-        <small>رقم المحفظة: <strong>07782292062</strong></small><br>
-        <small>يرجى تحويل المبلغ الكلي وإرسال صورة الإيصال عبر الواتساب لاحقاً.</small>
-      </div>
-
-      <div id="qicard-info" class="payment-info-box">
-        <p>💳 معلومات الدفع عبر كي كارد:</p>
-        <small>رقم البطاقة / الحساب: <strong>5211-xxxx-xxxx-xxxx</strong></small><br>
-        <small>يرجى تحويل المبلغ الكلي وإرسال إيصال التحويل عبر الواتساب.</small>
-      </div>
-
-      <button type="submit" class="btn-submit">تأكيد وإرسال الطلب</button>
+      <button type="submit" class="submit-btn">تأكيد وإرسال الطلب عبر واتساب</button>
     </form>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec"; 
-    const STORE_WHATSAPP = "9647782292062";
-
-    let cart = [];
-    let productsList = [];
-    let deliveryZones = {};
-    let currentDeliveryFee = 0;
-
-    async function loadProducts() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        productsList = data.products || [];
-        deliveryZones = data.delivery_zones || {};
-        
-        const listDiv = document.getElementById('product-list');
-        listDiv.innerHTML = '';
-
-        if (productsList.length > 0) {
-          productsList.forEach(p => {
-            const imageHtml = p.image_url && p.image_url.trim() !== "" 
-              ? `<img src="${p.image_url}" alt="${p.name_ar}" class="product-img" onerror="this.style.display='none'">` 
-              : '';
-
-            listDiv.innerHTML += `
-              <div class="product-card">
-                ${imageHtml}
-                <h3>${p.name_ar}</h3>
-                <p>${p.price} د.ع</p>
-                <button onclick="addToCart('${p.id}')">إضافة للسلة</button>
-              </div>
-            `;
-          });
-        } else {
-          listDiv.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">لا توجد منتجات متاحة حالياً</p>';
-        }
-      } catch (err) {
-        console.error("Error loading products:", err);
-      }
+    function selectProduct(name, price) {
+      document.getElementById('selectedProduct').value = name + " (" + price + ")";
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 
-    function addToCart(productId) {
-      const product = productsList.find(p => p.id === productId);
-      if (!product) return;
-
-      const existing = cart.find(item => item.product_id === productId);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({
-          product_id: product.id,
-          name: product.name_ar,
-          price: Number(product.price),
-          quantity: 1
-        });
-      }
-      renderCart();
-    }
-
-    function updateDeliveryFee() {
-      const selectedGov = document.getElementById('governorate').value;
-      currentDeliveryFee = deliveryZones[selectedGov] || 0;
-      renderCart();
-    }
-
-    function togglePaymentInstructions() {
-      const method = document.getElementById('payment_method').value;
-      const zainBox = document.getElementById('zaincash-info');
-      const qiBox = document.getElementById('qicard-info');
-
-      zainBox.style.display = (method === 'ZainCash') ? 'block' : 'none';
-      qiBox.style.display = (method === 'QiCard') ? 'block' : 'none';
-    }
-
-    function renderCart() {
-      const cartDiv = document.getElementById('cart-items');
-      const subtotalSpan = document.getElementById('cart-subtotal');
-      const deliverySpan = document.getElementById('delivery-fee');
-      const totalSpan = document.getElementById('cart-total');
-
-      if (cart.length === 0) {
-        cartDiv.innerHTML = 'السلة فارغة';
-        subtotalSpan.innerText = '0';
-        deliverySpan.innerText = '0';
-        totalSpan.innerText = '0';
-        return;
-      }
-
-      cartDiv.innerHTML = '';
-      let subtotal = 0;
-
-      cart.forEach((item, index) => {
-        subtotal += item.price * item.quantity;
-        cartDiv.innerHTML += `
-          <div class="cart-item">
-            <span>${item.name} (${item.quantity})</span>
-            <span>${item.price * item.quantity} د.ع</span>
-            <button onclick="removeFromCart(${index})" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">حذف</button>
-          </div>
-        `;
-      });
-
-      const grandTotal = subtotal + currentDeliveryFee;
-      subtotalSpan.innerText = subtotal;
-      deliverySpan.innerText = currentDeliveryFee;
-      totalSpan.innerText = grandTotal;
-    }
-
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      renderCart();
-    }
-
-    async function submitOrder(event) {
+    function submitOrder(event) {
       event.preventDefault();
 
-      if (cart.length === 0) {
-        alert("سلة التسوق فارغة!");
+      const productName = document.getElementById('selectedProduct').value;
+      const name = document.getElementById('customerName').value;
+      const phone = document.getElementById('customerPhone').value;
+      const city = document.getElementById('customerCity').value;
+      const payment = document.getElementById('paymentMethod').value;
+
+      if (!productName) {
+        alert("الرجاء اختيار منتج أولاً!");
         return;
       }
 
-      const customerName = document.getElementById('customer_name').value;
-      const phone = document.getElementById('phone').value;
-      const governorate = document.getElementById('governorate').value;
-      const districtAddress = document.getElementById('district_address').value;
-      const paymentMethod = document.getElementById('payment_method').value;
-
-      let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      let grandTotal = subtotal + currentDeliveryFee;
-
-      const orderData = {
-        action: "create_order",
-        customer_name: customerName,
+      // 1. Google Apps Script Web App URL
+      const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
+      
+      const formData = {
+        product: productName,
+        name: name,
         phone: phone,
-        governorate: governorate,
-        district_address: districtAddress,
-        payment_method: paymentMethod,
-        items: cart
+        city: city,
+        payment: payment
       };
 
-      const submitBtn = document.querySelector('.btn-submit');
-      submitBtn.innerText = "جاري إرسال الطلب...";
-      submitBtn.disabled = true;
+      // Post order data to Google Sheets
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      }).catch(error => console.error('Error logging to sheet:', error));
 
-      try {
-        fetch(API_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify(orderData)
-        });
+      // 2. Build WhatsApp Message with Product Name
+      const storeWhatsAppNumber = "9647782292062";
+      
+      const textMessage = "🛒 *طلب جديد من المتجر*%0A" +
+                          "--------------------------------%0A" +
+                          "📦 *المنتج:* " + encodeURIComponent(productName) + "%0A" +
+                          "👤 *الاسم:* " + encodeURIComponent(name) + "%0A" +
+                          "📱 *الهاتف:* " + encodeURIComponent(phone) + "%0A" +
+                          "📍 *المحافظة:* " + encodeURIComponent(city) + "%0A" +
+                          "💳 *طريقة الدفع:* " + encodeURIComponent(payment) + "%0A" +
+                          "--------------------------------";
 
-        const message = `مرحباً، أود تأكيد طلبي الجديد:%0A` +
-                        `*الاسم:* ${customerName}%0A` +
-                        `*رقم الهاتف:* ${phone}%0A` +
-                        `*المحافظة:* ${governorate}%0A` +
-                        `*العنوان:* ${districtAddress}%0A` +
-                        `*أجور التوصيل:* ${currentDeliveryFee} د.ع%0A` +
-                        `*المجموع الكلي:* ${grandTotal} د.ع%0A` +
-                        `*طريقة الدفع:* ${paymentMethod}`;
-        
-        const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${message}`;
+      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + textMessage;
 
-        const checkoutContainer = document.getElementById('checkout-container');
-        checkoutContainer.innerHTML = `
-          <div style="text-align: center; padding: 20px;">
-            <h2 style="color: #27ae60;">تم إرسال طلبك بنجاح!</h2>
-            <p>شكراً لك يا <strong>${customerName}</strong>، تم تسجيل طلبك بنجاح في النظام.</p>
-            <p><strong>المجموع الكلي: ${grandTotal} د.ع</strong> (شامل التوصيل: ${currentDeliveryFee} د.ع)</p>
-            <p>لتأكيد طلبك وإرسال إيصال التحويل، اضغط على الزر أدناه:</p>
-            <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
-              تأكيد الطلب عبر واتساب 📱
-            </a>
-          </div>
-        `;
-
-        cart = [];
-        currentDeliveryFee = 0;
-        renderCart();
-
-      } catch (err) {
-        console.error("Order submission error:", err);
-        alert("فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.");
-        submitBtn.innerText = "tتأكيد وإرسال الطلب";
-        submitBtn.disabled = false;
-      }
+      // 3. Open WhatsApp
+      window.location.href = whatsappURL;
     }
 
-    loadProducts();
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log("Service Worker Registered"));
+    }
   </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log("Service Worker Registered"));
-  }
-</script></body>
+</body>
 </html>
