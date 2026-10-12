@@ -12,7 +12,7 @@
     h1, h2 { text-align: center; color: #2c3e50; }
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
     .product-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .product-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; }
+    .product-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #eee; }
     .product-card h3 { font-size: 14px; margin: 5px 0; }
     .price { color: #e74c3c; font-weight: bold; font-size: 13px; margin-bottom: 8px; }
     .buy-btn { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: bold; }
@@ -30,20 +30,25 @@
 
   <h1>متجري الإلكتروني</h1>
   
-  <!-- Catalog -->
+  <!-- REAL PRODUCTS CATALOG: Replace image links, titles, and prices with your actual items -->
   <div class="product-grid" id="product-grid">
+    
+    <!-- Product 1 -->
     <div class="product-card">
-      <img src="https://i.postimg.cc/3w9322X8/sample.jpg" alt="منتج 1" class="product-img">
-      <h3>سماعة لاسلكية ذكية</h3>
-      <div class="price">35,000 د.ع</div>
-      <button class="buy-btn" type="button" onclick="selectProduct('سماعة لاسلكية ذكية - 35,000 د.ع')">اطلب الآن</button>
+      <img src="PASTE_YOUR_POSTIMAGE_LINK_HERE_1" alt="منتج 1" class="product-img">
+      <h3>اسم المنتج الأول</h3>
+      <div class="price">25,000 د.ع</div>
+      <button class="buy-btn" type="button" onclick="selectProduct('اسم المنتج الأول - 25,000 د.ع')">اطلب الآن</button>
     </div>
+
+    <!-- Product 2 -->
     <div class="product-card">
-      <img src="https://i.postimg.cc/3w9322X8/sample.jpg" alt="منتج 2" class="product-img">
-      <h3>ساعة ذكية متطورة</h3>
-      <div class="price">55,000 د.ع</div>
-      <button class="buy-btn" type="button" onclick="selectProduct('ساعة ذكية متطورة - 55,000 د.ع')">اطلب الآن</button>
+      <img src="PASTE_YOUR_POSTIMAGE_LINK_HERE_2" alt="منتج 2" class="product-img">
+      <h3>اسم المنتج الثاني</h3>
+      <div class="price">45,000 د.ع</div>
+      <button class="buy-btn" type="button" onclick="selectProduct('اسم المنتج الثاني - 45,000 د.ع')">اطلب الآن</button>
     </div>
+
   </div>
 
   <!-- Checkout Form -->
@@ -133,7 +138,7 @@
         })
       }).catch(err => console.error('Error:', err));
 
-      // 2. Build WhatsApp text format matching your screenshot exact style + adding Product
+      // 2. Build WhatsApp text format including Product Name
       const storeWhatsAppNumber = "9647782292062";
       
       let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
