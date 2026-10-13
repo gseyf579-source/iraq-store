@@ -19,7 +19,6 @@
     .add-btn:hover { background-color: #219653; }
     .add-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
 
-    /* Cart Section */
     .cart-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 6px 0; font-size: 13px; }
     .cart-totals { margin-top: 10px; font-size: 14px; border-top: 2px solid #ddd; padding-top: 8px; }
@@ -39,12 +38,10 @@
 
   <h1>متجري الإلكتروني</h1>
 
-  <!-- Product Catalog -->
   <div class="product-grid" id="product-grid">
     <div class="loading">جاري تحميل المنتجات...</div>
   </div>
 
-  <!-- Shopping Cart Box -->
   <div class="cart-box" id="cartBox" style="display:none;">
     <h3>سلة المشتريات</h3>
     <div id="cartItemsList"></div>
@@ -55,7 +52,6 @@
     </div>
   </div>
 
-  <!-- Checkout Form -->
   <div class="checkout-form">
     <h2>إتمام الطلب</h2>
     <form id="orderForm" onsubmit="submitOrder(event)">
@@ -68,7 +64,7 @@
         <input type="tel" id="customerPhone" required placeholder="0780xxxxxxxx">
       </div>
       <div class="form-group">
-        <label for="customerCity">المحافظة (تحديد أجور التوصيل):</label>
+        <label for="customerCity">المحافظة:</label>
         <select id="customerCity" required onchange="updateTotals()">
           <option value="">اختر المحافظة...</option>
           <option value="بغداد" data-fee="5000">بغداد (5,000 د.ع)</option>
@@ -108,7 +104,7 @@
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec"; // Replace with your active deployment URL if changed
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
     let productsList = [];
     let cart = [];
 
@@ -234,10 +230,9 @@
       let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       let grandTotal = subtotal + deliveryFee;
 
-      // Format products list text for sheets and whatsapp
       let productsSummary = cart.map(i => `${i.name} (عدد: ${i.quantity})`).join('، ');
 
-      // Send to Google Sheets (Backend & Stock Deduction)
+      // Send to Google Sheets Backend
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
@@ -255,7 +250,7 @@
         })
       }).catch(err => console.error('Error:', err));
 
-      // Build WhatsApp message
+      // Build WhatsApp message formatted cleanly
       const storeWhatsAppNumber = "9647782292062";
       let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
                         "📦 *المنتجات:* " + productsSummary + "\n" +
@@ -267,7 +262,10 @@
                         "💰 *المجموع الكلي:* " + grandTotal.toLocaleString() + " د.ع\n" +
                         "💳 *طريقة الدفع:* " + payment;
 
-      window.location.href = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
+      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
+
+      // Opens WhatsApp directly
+      window.location.href = whatsappURL;
     }
 
     if ('serviceWorker' in navigator) {
