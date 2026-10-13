@@ -17,6 +17,7 @@
     .price { color: #e74c3c; font-weight: bold; font-size: 13px; margin-bottom: 8px; }
     .buy-btn { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: bold; }
     .buy-btn:hover { background-color: #219653; }
+    .loading-text { text-align: center; grid-column: 1 / -1; color: #7f8c8d; padding: 20px; }
     
     .checkout-form { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
     .form-group { margin-bottom: 12px; }
@@ -30,25 +31,9 @@
 
   <h1>متجري الإلكتروني</h1>
   
-  <!-- REAL PRODUCTS CATALOG: Replace image links, titles, and prices with your actual items -->
+  <!-- DYNAMIC PRODUCT CATALOG LOADED FROM GOOGLE SHEETS -->
   <div class="product-grid" id="product-grid">
-    
-    <!-- Product 1 -->
-    <div class="product-card">
-      <img src="PASTE_YOUR_POSTIMAGE_LINK_HERE_1" alt="منتج 1" class="product-img">
-      <h3>اسم المنتج الأول</h3>
-      <div class="price">25,000 د.ع</div>
-      <button class="buy-btn" type="button" onclick="selectProduct('اسم المنتج الأول - 25,000 د.ع')">اطلب الآن</button>
-    </div>
-
-    <!-- Product 2 -->
-    <div class="product-card">
-      <img src="PASTE_YOUR_POSTIMAGE_LINK_HERE_2" alt="منتج 2" class="product-img">
-      <h3>اسم المنتج الثاني</h3>
-      <div class="price">45,000 د.ع</div>
-      <button class="buy-btn" type="button" onclick="selectProduct('اسم المنتج الثاني - 45,000 د.ع')">اطلب الآن</button>
-    </div>
-
+    <div class="loading-text">جاري تحميل المنتجات من قاعدة البيانات...</div>
   </div>
 
   <!-- Checkout Form -->
@@ -71,13 +56,13 @@
         <label for="customerCity">المحافظة:</label>
         <select id="customerCity" required>
           <option value="">اختر المحافظة...</option>
-          <option value="بغداد">Baghdad</option>
-          <option value="أربيل">Erbil</option>
-          <option value="البصرة">Basra</option>
-          <option value="صلاح الدين">Salah al-Din</option>
-          <option value="السليمانية">Sulaymaniyah</option>
-          <option value="الموصل">Mosul</option>
-          <option value="كركوك">Kirkuk</option>
+          <option value="بغداد">بغداد</option>
+          <option value="أربيل">أربيل</option>
+          <option value="البصرة">البصرة</option>
+          <option value="صلاح الدين">صلاح الدين</option>
+          <option value="السليمانية">السليمانية</option>
+          <option value="الموصل">الموصل</option>
+          <option value="كركوك">كركوك</option>
         </select>
       </div>
       <div class="form-group">
@@ -87,9 +72,9 @@
       <div class="form-group">
         <label for="paymentMethod">طريقة الدفع:</label>
         <select id="paymentMethod" required>
-          <option value="Cash On Delivery">Cash On Delivery (الدفع عند الاستلام)</option>
-          <option value="ZainCash">ZainCash (زين كاش)</option>
-          <option value="QiCard">QiCard (كي كارت)</option>
+          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
+          <option value="ZainCash">زين كاش (ZainCash)</option>
+          <option value="QiCard">كي كارت (QiCard)</option>
         </select>
       </div>
       <button type="submit" class="submit-btn">تأكيد وإرسال الطلب عبر واتساب</button>
@@ -97,18 +82,52 @@
   </div>
 
   <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
+
+    // Fetch products dynamically from Google Sheet on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch(scriptURL)
+        .then(response => response.json())
+        .then(products => {
+          const grid = document.getElementById('product-grid');
+          grid.innerHTML = '';
+          
+          if (products.length === 0) {
+            grid.innerHTML = '<div class="loading-text">لا توجد منتجات مضافة حالياً في جدول البيانات.</div>';
+            return;
+          }
+
+          products.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            const itemTitle = p.name + " - " + p.price;
+            
+            card.innerHTML = `
+              <img src="${p.image}" alt="${p.name}" class="product-img" onerror="this.src='https://i.postimg.cc/3w9322X8/sample.jpg'">
+              <h3>${p.name}</h3>
+              <div class="price">${p.price}</div>
+              <button class="buy-btn" type="button" onclick="selectProduct('${itemTitle.replace(/'/g, "\\'")}')">اطلب الآن</button>
+            `;
+            grid.appendChild(card);
+          });
+        })
+        .catch(err => {
+          console.error('Error loading products:', err);
+          document.getElementById('product-grid').innerHTML = '<div class="loading-text" style="color:red;">خطأ في تحميل المنتجات من جدول البيانات.</div>';
+        });
+    });
+
     function selectProduct(productTitle) {
       const productInput = document.getElementById('selectedProduct');
       productInput.value = productTitle;
       productInput.style.background = "#d4edda";
       productInput.style.color = "#155724";
-      
       document.querySelector('.checkout-form').scrollIntoView({ behavior: 'smooth' });
     }
 
     function submitOrder(event) {
       event.preventDefault();
-
       const productName = document.getElementById('selectedProduct').value;
       const name = document.getElementById('customerName').value;
       const phone = document.getElementById('customerPhone').value;
@@ -121,26 +140,15 @@
         return;
       }
 
-      // 1. Send data to Google Apps Script Backend
-      const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
-      
+      // Send order data to Google Apps Script Backend
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product: productName,
-          name: name,
-          phone: phone,
-          city: city,
-          address: address,
-          payment: payment
-        })
+        body: JSON.stringify({ product: productName, name: name, phone: phone, city: city, address: address, payment: payment })
       }).catch(err => console.error('Error:', err));
 
-      // 2. Build WhatsApp text format including Product Name
       const storeWhatsAppNumber = "9647782292062";
-      
       let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
                         "📦 *المنتج:* " + productName + "\n" +
                         "👤 *الاسم:* " + name + "\n" +
@@ -149,9 +157,7 @@
                         "🏠 *العنوان:* " + address + "\n" +
                         "💳 *طريقة الدفع:* " + payment;
 
-      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
-
-      window.location.href = whatsappURL;
+      window.location.href = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
     }
 
     if ('serviceWorker' in navigator) {
