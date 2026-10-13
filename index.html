@@ -99,9 +99,10 @@
           <option value="QiCard">QiCard (كي كارت)</option>
         </select>
       </div>
-      <div class="form-group" id="walletGroup" style="display:none;">
-        <label id="walletLabel" for="walletNumber">رقم المحفظة / الحساب:</label>
-        <input type="text" id="walletNumber" placeholder="أدخل رقم المحفظة أو الحساب">
+      <div class="form-group" id="walletGroup" style="display:none; background: #e8f8f5; padding: 10px; border-radius: 6px; border: 1px solid #a3e4d7;">
+        <label id="walletLabel" style="color: #117a65; font-weight: bold; margin-bottom: 3px;"></label>
+        <div id="storeAccountInfo" style="font-size: 14px; color: #2c3e50; font-weight: bold; padding: 5px 0;"></div>
+        <input type="hidden" id="walletNumber" value="حساب المتجر الرسمي">
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">✅ تأكيد وإرسال الطلب عبر واتساب</button>
     </form>
