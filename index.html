@@ -29,8 +29,8 @@
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; }
     .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-    .submit-btn { background-color: #2980b9; color: white; border: none; padding: 10px; width: 100%; border-radius: 4px; font-size: 15px; cursor: pointer; font-weight: bold; }
-    .submit-btn:hover { background-color: #1f618d; }
+    .submit-btn { background-color: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3); }
+    .submit-btn:hover { background-color: #219653; }
     .loading { text-align: center; grid-column: 1 / -1; padding: 20px; color: #7f8c8d; }
   </style>
 </head>
@@ -94,12 +94,12 @@
       <div class="form-group">
         <label for="paymentMethod">طريقة الدفع:</label>
         <select id="paymentMethod" required>
-          <option value="Cash On Delivery">Cash On Delivery (الدفع عند الاستلام)</option>
-          <option value="ZainCash">ZainCash (زين كاش)</option>
-          <option value="QiCard">QiCard (كي كارت)</option>
+          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
+          <option value="ZainCash">زين كاش (ZainCash)</option>
+          <option value="QiCard">كي كارت (QiCard)</option>
         </select>
       </div>
-      <button type="submit" class="submit-btn">تأكيد وإرسال الطلب عبر واتساب</button>
+      <button type="submit" class="submit-btn" id="submitBtn">✅ تأكيد وإرسال الطلب عبر واتساب</button>
     </form>
   </div>
 
@@ -232,7 +232,11 @@
 
       let productsSummary = cart.map(i => `${i.name} (عدد: ${i.quantity})`).join('، ');
 
-      // Send to Google Sheets Backend
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "جاري إرسال الطلب وحفظ المخزون...";
+
+      // Send order data to Google Apps Script Backend & Stock Update
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
@@ -248,24 +252,27 @@
           total: grandTotal + " د.ع",
           payment: payment
         })
-      }).catch(err => console.error('Error:', err));
+      }).then(() => {
+        // Build WhatsApp message
+        const storeWhatsAppNumber = "9647782292062";
+        let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
+                          "📦 *المنتجات:* " + productsSummary + "\n" +
+                          "👤 *الاسم:* " + name + "\n" +
+                          "📱 *رقم الهاتف:* " + phone + "\n" +
+                          "📍 *المحافظة:* " + city + "\n" +
+                          "🏠 *العنوان:* " + address + "\n" +
+                          "🚚 *أجور التوصيل:* " + deliveryFee.toLocaleString() + " د.ع\n" +
+                          "💰 *المجموع الكلي:* " + grandTotal.toLocaleString() + " د.ع\n" +
+                          "💳 *طريقة الدفع:* " + payment;
 
-      // Build WhatsApp message formatted cleanly
-      const storeWhatsAppNumber = "9647782292062";
-      let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
-                        "📦 *المنتجات:* " + productsSummary + "\n" +
-                        "👤 *الاسم:* " + name + "\n" +
-                        "📱 *رقم الهاتف:* " + phone + "\n" +
-                        "📍 *المحافظة:* " + city + "\n" +
-                        "🏠 *العنوان:* " + address + "\n" +
-                        "🚚 *أجور التوصيل:* " + deliveryFee.toLocaleString() + " د.ع\n" +
-                        "💰 *المجموع الكلي:* " + grandTotal.toLocaleString() + " د.ع\n" +
-                        "💳 *طريقة الدفع:* " + payment;
-
-      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
-
-      // Opens WhatsApp directly
-      window.location.href = whatsappURL;
+        const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
+        window.location.href = whatsappURL;
+      }).catch(err => {
+        console.error('Error:', err);
+        alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "✅ تأكيد وإرسال الطلب عبر واتساب";
+      });
     }
 
     if ('serviceWorker' in navigator) {
