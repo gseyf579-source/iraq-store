@@ -6,44 +6,59 @@
   <title>متجري الإلكتروني - العراق</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#27ae60">
-  <meta name="description" content="متجري الإلكتروني في العراق - تسوق أفضل المنتجات مع خدمة الدفع عند الاستلام، زين كاش، وكي كارت.">
   <style>
     body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 10px; color: #333; }
     h1, h2 { text-align: center; color: #2c3e50; }
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
     .product-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .product-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #eee; }
-    .product-card h3 { font-size: 14px; margin: 5px 0; }
-    .price { color: #e74c3c; font-weight: bold; font-size: 13px; margin-bottom: 8px; }
-    .buy-btn { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: bold; }
-    .buy-btn:hover { background-color: #219653; }
-    .loading-text { text-align: center; grid-column: 1 / -1; color: #7f8c8d; padding: 20px; }
-    
+    .product-img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #eee; }
+    .product-card h3 { font-size: 13px; margin: 5px 0; }
+    .price { color: #e74c3c; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
+    .stock { font-size: 11px; color: #7f8c8d; margin-bottom: 8px; }
+    .add-btn { background-color: #27ae60; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: bold; }
+    .add-btn:hover { background-color: #219653; }
+    .add-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+    /* Cart Section */
+    .cart-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 6px 0; font-size: 13px; }
+    .cart-totals { margin-top: 10px; font-size: 14px; border-top: 2px solid #ddd; padding-top: 8px; }
+    .cart-totals div { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .grand-total { font-weight: bold; color: #c0392b; font-size: 16px; }
+
     .checkout-form { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; }
     .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
     .submit-btn { background-color: #2980b9; color: white; border: none; padding: 10px; width: 100%; border-radius: 4px; font-size: 15px; cursor: pointer; font-weight: bold; }
     .submit-btn:hover { background-color: #1f618d; }
+    .loading { text-align: center; grid-column: 1 / -1; padding: 20px; color: #7f8c8d; }
   </style>
 </head>
 <body>
 
   <h1>متجري الإلكتروني</h1>
-  
-  <!-- DYNAMIC PRODUCT CATALOG LOADED FROM GOOGLE SHEETS -->
+
+  <!-- Product Catalog -->
   <div class="product-grid" id="product-grid">
-    <div class="loading-text">جاري تحميل المنتجات من قاعدة البيانات...</div>
+    <div class="loading">جاري تحميل المنتجات...</div>
+  </div>
+
+  <!-- Shopping Cart Box -->
+  <div class="cart-box" id="cartBox" style="display:none;">
+    <h3>سلة المشتريات</h3>
+    <div id="cartItemsList"></div>
+    <div class="cart-totals">
+      <div><span>مجموع المنتجات:</span> <span id="subtotalText">0 د.ع</span></div>
+      <div><span>أجور التوصيل:</span> <span id="deliveryText">0 د.ع</span></div>
+      <div class="grand-total"><span>المجموع الكلي:</span> <span id="grandTotalText">0 د.ع</span></div>
+    </div>
   </div>
 
   <!-- Checkout Form -->
   <div class="checkout-form">
     <h2>إتمام الطلب</h2>
     <form id="orderForm" onsubmit="submitOrder(event)">
-      <div class="form-group">
-        <label for="selectedProduct">المنتج المختار:</label>
-        <input type="text" id="selectedProduct" readonly placeholder="اضغط على (اطلب الآن) لاختيار منتج" required style="background: #fff3cd; font-weight: bold; color: #856404; border: 1px solid #ffeba2;">
-      </div>
       <div class="form-group">
         <label for="customerName">الاسم الكامل:</label>
         <input type="text" id="customerName" required placeholder="أدخل اسمك الكريم">
@@ -53,28 +68,39 @@
         <input type="tel" id="customerPhone" required placeholder="0780xxxxxxxx">
       </div>
       <div class="form-group">
-        <label for="customerCity">المحافظة:</label>
-        <select id="customerCity" required>
+        <label for="customerCity">المحافظة (تحديد أجور التوصيل):</label>
+        <select id="customerCity" required onchange="updateTotals()">
           <option value="">اختر المحافظة...</option>
-          <option value="بغداد">بغداد</option>
-          <option value="أربيل">أربيل</option>
-          <option value="البصرة">البصرة</option>
-          <option value="صلاح الدين">صلاح الدين</option>
-          <option value="السليمانية">السليمانية</option>
-          <option value="الموصل">الموصل</option>
-          <option value="كركوك">كركوك</option>
+          <option value="بغداد" data-fee="5000">بغداد (5,000 د.ع)</option>
+          <option value="أربيل" data-fee="6000">أربيل (6,000 د.ع)</option>
+          <option value="البصرة" data-fee="7000">البصرة (7,000 د.ع)</option>
+          <option value="صلاح الدين" data-fee="6000">صلاح الدين (6,000 د.ع)</option>
+          <option value="السليمانية" data-fee="6000">السليمانية (6,000 د.ع)</option>
+          <option value="الموصل" data-fee="7000">الموصل (7,000 د.ع)</option>
+          <option value="كركوك" data-fee="6000">كركوك (6,000 د.ع)</option>
+          <option value="ديالى" data-fee="5000">ديالى (5,000 د.ع)</option>
+          <option value="الأنبار" data-fee="6000">الأنبار (6,000 د.ع)</option>
+          <option value="بابل" data-fee="5000">بابل (5,000 د.ع)</option>
+          <option value="كربلاء" data-fee="5000">كربلاء (5,000 د.ع)</option>
+          <option value="النجف" data-fee="5000">النجف (5,000 د.ع)</option>
+          <option value="ذي قار" data-fee="7000">ذي قار (7,000 د.ع)</option>
+          <option value="ميسان" data-fee="7000">ميسان (7,000 د.ع)</option>
+          <option value="المثنى" data-fee="7000">المثنى (7,000 د.ع)</option>
+          <option value="واسط" data-fee="5000">واسط (5,000 د.ع)</option>
+          <option value="القادسية" data-fee="6000">القادسية (6,000 د.ع)</option>
+          <option value="دهوك" data-fee="7000">دهوك (7,000 د.ع)</option>
         </select>
       </div>
       <div class="form-group">
         <label for="customerAddress">العنوان التفصيلي:</label>
-        <input type="text" id="customerAddress" placeholder="المنطقة - اسم الشارع / قرب معلم معروف">
+        <input type="text" id="customerAddress" placeholder="المنطقة - اسم الشارع / قرب معلم معروف" required>
       </div>
       <div class="form-group">
         <label for="paymentMethod">طريقة الدفع:</label>
         <select id="paymentMethod" required>
-          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
-          <option value="ZainCash">زين كاش (ZainCash)</option>
-          <option value="QiCard">كي كارت (QiCard)</option>
+          <option value="Cash On Delivery">Cash On Delivery (الدفع عند الاستلام)</option>
+          <option value="ZainCash">ZainCash (زين كاش)</option>
+          <option value="QiCard">QiCard (كي كارت)</option>
         </select>
       </div>
       <button type="submit" class="submit-btn">تأكيد وإرسال الطلب عبر واتساب</button>
@@ -82,79 +108,163 @@
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec"; // Replace with your active deployment URL if changed
+    let productsList = [];
+    let cart = [];
 
-    // Fetch products dynamically from Google Sheet on page load
     window.addEventListener('DOMContentLoaded', () => {
       fetch(scriptURL)
-        .then(response => response.json())
-        .then(products => {
+        .then(res => res.json())
+        .then(data => {
+          productsList = data;
           const grid = document.getElementById('product-grid');
           grid.innerHTML = '';
-          
-          if (products.length === 0) {
-            grid.innerHTML = '<div class="loading-text">لا توجد منتجات مضافة حالياً في جدول البيانات.</div>';
+
+          if (productsList.length === 0) {
+            grid.innerHTML = '<div class="loading">لا توجد منتجات متاحة حالياً.</div>';
             return;
           }
 
-          products.forEach(p => {
+          productsList.forEach((p, index) => {
             const card = document.createElement('div');
             card.className = 'product-card';
-            
-            const itemTitle = p.name + " - " + p.price;
-            
             card.innerHTML = `
               <img src="${p.image}" alt="${p.name}" class="product-img" onerror="this.src='https://i.postimg.cc/3w9322X8/sample.jpg'">
               <h3>${p.name}</h3>
-              <div class="price">${p.price}</div>
-              <button class="buy-btn" type="button" onclick="selectProduct('${itemTitle.replace(/'/g, "\\'")}')">اطلب الآن</button>
+              <div class="price">${p.price.toLocaleString()} د.ع</div>
+              <div class="stock">المتوفر: ${p.stock}</div>
+              <button class="add-btn" id="btn-${index}" ${p.stock <= 0 ? 'disabled' : ''} onclick="addToCart(${index})">
+                ${p.stock > 0 ? 'إضافة للسلة' : 'نفذت الكمية'}
+              </button>
             `;
             grid.appendChild(card);
           });
         })
         .catch(err => {
-          console.error('Error loading products:', err);
-          document.getElementById('product-grid').innerHTML = '<div class="loading-text" style="color:red;">خطأ في تحميل المنتجات من جدول البيانات.</div>';
+          console.error('Error:', err);
+          document.getElementById('product-grid').innerHTML = '<div class="loading" style="color:red;">خطأ في تحميل المنتجات.</div>';
         });
     });
 
-    function selectProduct(productTitle) {
-      const productInput = document.getElementById('selectedProduct');
-      productInput.value = productTitle;
-      productInput.style.background = "#d4edda";
-      productInput.style.color = "#155724";
-      document.querySelector('.checkout-form').scrollIntoView({ behavior: 'smooth' });
+    function addToCart(index) {
+      const product = productsList[index];
+      const existing = cart.find(item => item.name === product.name);
+
+      if (existing) {
+        if (existing.quantity < product.stock) {
+          existing.quantity++;
+        } else {
+          alert('عذراً، لقد وصلت إلى الحد الأقصى للكمية المتوفرة في المخزن.');
+          return;
+        }
+      } else {
+        cart.push({
+          name: product.name,
+          price: product.price,
+          quantity: 1
+        });
+      }
+      renderCart();
+    }
+
+    function removeFromCart(name) {
+      cart = cart.filter(item => item.name !== name);
+      renderCart();
+    }
+
+    function renderCart() {
+      const cartBox = document.getElementById('cartBox');
+      const listDiv = document.getElementById('cartItemsList');
+      
+      if (cart.length === 0) {
+        cartBox.style.display = 'none';
+        return;
+      }
+
+      cartBox.style.display = 'block';
+      listDiv.innerHTML = '';
+
+      cart.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+          <span>${item.name} (${item.quantity}x)</span>
+          <span>${(item.price * item.quantity).toLocaleString()} د.ع 
+            <button onclick="removeFromCart('${item.name}')" style="background:#e74c3c; color:#fff; border:none; padding:2px 6px; border-radius:3px; cursor:pointer; margin-right:5px;">حذف</button>
+          </span>
+        `;
+        listDiv.appendChild(row);
+      });
+
+      updateTotals();
+    }
+
+    function updateTotals() {
+      let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      const citySelect = document.getElementById('customerCity');
+      let deliveryFee = 0;
+      if (citySelect.selectedIndex > 0) {
+        deliveryFee = Number(citySelect.options[citySelect.selectedIndex].getAttribute('data-fee')) || 0;
+      }
+
+      let grandTotal = subtotal + deliveryFee;
+
+      document.getElementById('subtotalText').innerText = subtotal.toLocaleString() + " د.ع";
+      document.getElementById('deliveryText').innerText = deliveryFee.toLocaleString() + " د.ع";
+      document.getElementById('grandTotalText').innerText = grandTotal.toLocaleString() + " د.ع";
     }
 
     function submitOrder(event) {
       event.preventDefault();
-      const productName = document.getElementById('selectedProduct').value;
-      const name = document.getElementById('customerName').value;
-      const phone = document.getElementById('customerPhone').value;
-      const city = document.getElementById('customerCity').value;
-      const address = document.getElementById('customerAddress').value || "غير محدد";
-      const payment = document.getElementById('paymentMethod').value;
 
-      if (!productName) {
-        alert("الرجاء الضغط على زر (اطلب الآن) لاختيار المنتج!");
+      if (cart.length === 0) {
+        alert("الرجاء إضافة منتج واحد على الأقل إلى السلة!");
         return;
       }
 
-      // Send order data to Google Apps Script Backend
+      const name = document.getElementById('customerName').value;
+      const phone = document.getElementById('customerPhone').value;
+      const citySelect = document.getElementById('customerCity');
+      const city = citySelect.value;
+      const deliveryFee = Number(citySelect.options[citySelect.selectedIndex].getAttribute('data-fee')) || 0;
+      const address = document.getElementById('customerAddress').value;
+      const payment = document.getElementById('paymentMethod').value;
+
+      let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      let grandTotal = subtotal + deliveryFee;
+
+      // Format products list text for sheets and whatsapp
+      let productsSummary = cart.map(i => `${i.name} (عدد: ${i.quantity})`).join('، ');
+
+      // Send to Google Sheets (Backend & Stock Deduction)
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product: productName, name: name, phone: phone, city: city, address: address, payment: payment })
+        body: JSON.stringify({
+          items: cart,
+          products: productsSummary,
+          name: name,
+          phone: phone,
+          city: city,
+          address: address,
+          deliveryFee: deliveryFee + " د.ع",
+          total: grandTotal + " د.ع",
+          payment: payment
+        })
       }).catch(err => console.error('Error:', err));
 
+      // Build WhatsApp message
       const storeWhatsAppNumber = "9647782292062";
       let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
-                        "📦 *المنتج:* " + productName + "\n" +
+                        "📦 *المنتجات:* " + productsSummary + "\n" +
                         "👤 *الاسم:* " + name + "\n" +
                         "📱 *رقم الهاتف:* " + phone + "\n" +
                         "📍 *المحافظة:* " + city + "\n" +
                         "🏠 *العنوان:* " + address + "\n" +
+                        "🚚 *أجور التوصيل:* " + deliveryFee.toLocaleString() + " د.ع\n" +
+                        "💰 *المجموع الكلي:* " + grandTotal.toLocaleString() + " د.ع\n" +
                         "💳 *طريقة الدفع:* " + payment;
 
       window.location.href = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
