@@ -172,6 +172,7 @@
         }
       } else {
         cart.push({
+          productId: product.productId,
           name: product.name,
           price: product.price,
           quantity: 1
@@ -251,7 +252,7 @@
       submitBtn.disabled = true;
       submitBtn.innerText = "جاري إرسال الطلب وحفظ المخزون...";
 
-      // Send order to Google Apps Script Backend instantly
+      // Instant fetch trigger to Google Sheets
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
@@ -266,8 +267,7 @@
           paymentMethod: paymentMethod,
           walletNumber: walletNumber,
           deliveryFee: deliveryFee + " د.ع",
-          total: grandTotal + " د.ع",
-          paymentStatus: paymentMethod === "Cash On Delivery" ? "Pending" : paymentMethod + " (" + walletNumber + ")"
+          total: grandTotal + " د.ع"
         })
       });
 
@@ -285,9 +285,10 @@
 
       const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
       
+      // Instant redirect
       setTimeout(() => {
         window.location.href = whatsappURL;
-      }, 500);
+      }, 300);
     }
 
     if ('serviceWorker' in navigator) {
