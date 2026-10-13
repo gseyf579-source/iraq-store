@@ -93,11 +93,15 @@
       </div>
       <div class="form-group">
         <label for="paymentMethod">طريقة الدفع:</label>
-        <select id="paymentMethod" required>
-          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
-          <option value="ZainCash">زين كاش (ZainCash)</option>
-          <option value="QiCard">كي كارت (QiCard)</option>
+        <select id="paymentMethod" required onchange="toggleWalletField()">
+          <option value="Cash On Delivery">Cash On Delivery (الدفع عند الاستلام)</option>
+          <option value="ZainCash">ZainCash (زين كاش)</option>
+          <option value="QiCard">QiCard (كي كارت)</option>
         </select>
+      </div>
+      <div class="form-group" id="walletGroup" style="display:none;">
+        <label id="walletLabel" for="walletNumber">رقم المحفظة / الحساب:</label>
+        <input type="text" id="walletNumber" placeholder="أدخل رقم المحفظة أو الحساب">
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">✅ تأكيد وإرسال الطلب عبر واتساب</button>
     </form>
@@ -136,11 +140,24 @@
             grid.appendChild(card);
           });
         })
-        .catch(err => {
-          console.error('Error:', err);
-          document.getElementById('product-grid').innerHTML = '<div class="loading" style="color:red;">خطأ في تحميل المنتجات.</div>';
-        });
+        .catch(err => console.error('Error loading products:', err));
     });
+
+    function toggleWalletField() {
+      const payment = document.getElementById('paymentMethod').value;
+      const walletGroup = document.getElementById('walletGroup');
+      const walletLabel = document.getElementById('walletLabel');
+      
+      if (payment === "ZainCash") {
+        walletGroup.style.display = "block";
+        walletLabel.innerText = "رقم محفظة زين كاش:";
+      } else if (payment === "QiCard") {
+        walletGroup.style.display = "block";
+        walletLabel.innerText = "رقم حساب / كارت كي كارت:";
+      } else {
+        walletGroup.style.display = "none";
+      }
+    }
 
     function addToCart(index) {
       const product = productsList[index];
@@ -197,13 +214,11 @@
 
     function updateTotals() {
       let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      
       const citySelect = document.getElementById('customerCity');
       let deliveryFee = 0;
       if (citySelect.selectedIndex > 0) {
         deliveryFee = Number(citySelect.options[citySelect.selectedIndex].getAttribute('data-fee')) || 0;
       }
-
       let grandTotal = subtotal + deliveryFee;
 
       document.getElementById('subtotalText').innerText = subtotal.toLocaleString() + " د.ع";
@@ -225,18 +240,18 @@
       const city = citySelect.value;
       const deliveryFee = Number(citySelect.options[citySelect.selectedIndex].getAttribute('data-fee')) || 0;
       const address = document.getElementById('customerAddress').value;
-      const payment = document.getElementById('paymentMethod').value;
+      const paymentMethod = document.getElementById('paymentMethod').value;
+      const walletNumber = document.getElementById('walletNumber').value || "N/A";
 
       let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       let grandTotal = subtotal + deliveryFee;
-
       let productsSummary = cart.map(i => `${i.name} (عدد: ${i.quantity})`).join('، ');
 
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
       submitBtn.innerText = "جاري إرسال الطلب وحفظ المخزون...";
 
-      // Send order data to Google Apps Script Backend & Stock Update
+      // Send order to Google Apps Script Backend instantly
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
@@ -248,31 +263,31 @@
           phone: phone,
           city: city,
           address: address,
+          paymentMethod: paymentMethod,
+          walletNumber: walletNumber,
           deliveryFee: deliveryFee + " د.ع",
           total: grandTotal + " د.ع",
-          payment: payment
+          paymentStatus: paymentMethod === "Cash On Delivery" ? "Pending" : paymentMethod + " (" + walletNumber + ")"
         })
-      }).then(() => {
-        // Build WhatsApp message
-        const storeWhatsAppNumber = "9647782292062";
-        let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
-                          "📦 *المنتجات:* " + productsSummary + "\n" +
-                          "👤 *الاسم:* " + name + "\n" +
-                          "📱 *رقم الهاتف:* " + phone + "\n" +
-                          "📍 *المحافظة:* " + city + "\n" +
-                          "🏠 *العنوان:* " + address + "\n" +
-                          "🚚 *أجور التوصيل:* " + deliveryFee.toLocaleString() + " د.ع\n" +
-                          "💰 *المجموع الكلي:* " + grandTotal.toLocaleString() + " د.ع\n" +
-                          "💳 *طريقة الدفع:* " + payment;
-
-        const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
-        window.location.href = whatsappURL;
-      }).catch(err => {
-        console.error('Error:', err);
-        alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى.");
-        submitBtn.disabled = false;
-        submitBtn.innerText = "✅ تأكيد وإرسال الطلب عبر واتساب";
       });
+
+      // Build WhatsApp message
+      const storeWhatsAppNumber = "9647782292062";
+      let textMessage = "مرحباً، أود تأكيد طلبي الجديد:\n" +
+                        "📦 *المنتجات:* " + productsSummary + "\n" +
+                        "👤 *الاسم:* " + name + "\n" +
+                        "📱 *رقم الهاتف:* " + phone + "\n" +
+                        "📍 *المحافظة:* " + city + "\n" +
+                        "🏠 *العنوان:* " + address + "\n" +
+                        "💳 *طريقة الدفع:* " + paymentMethod + (walletNumber !== "N/A" ? " (" + walletNumber + ")" : "") + "\n" +
+                        "🚚 *أجور التوصيل:* " + deliveryFee.toLocaleString() + " د.ع\n" +
+                        "💰 *المجموع الكلي:* " + grandTotal.toLocaleString() + " د.ع";
+
+      const whatsappURL = "https://api.whatsapp.com/send?phone=" + storeWhatsAppNumber + "&text=" + encodeURIComponent(textMessage);
+      
+      setTimeout(() => {
+        window.location.href = whatsappURL;
+      }, 500);
     }
 
     if ('serviceWorker' in navigator) {
