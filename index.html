@@ -113,7 +113,7 @@
         مجموع المنتجات: <span id="cart-subtotal">0</span> د.ع
       </div>
       <div>
-        أجور التوصيل: <span id="delivery-fee-display">5,000</span> د.ع
+        أجور التوصيل: <span id="delivery-fee-display">0</span> د.ع
       </div>
       <div style="margin-top: 5px; font-size: 1.1em; color: #c0392b; font-weight: bold;">
         المجموع الكلي: <span id="cart-total">0</span> د.ع
@@ -133,28 +133,11 @@
         <input type="text" id="customerPhone" placeholder="07701234567">
       </div>
 
-      <!-- Governorates List with Custom Delivery Fees -->
+      <!-- Governorates List loaded dynamically from Delivery_Zones tab -->
       <div class="form-group">
         <label>المحافظة:</label>
         <select id="customerCity" onchange="updateDeliveryFee()">
-          <option value="بغداد" data-fee="5000">بغداد (5,000 د.ع)</option>
-          <option value="البصرة" data-fee="8000">البصرة (8,000 د.ع)</option>
-          <option value="أربيل" data-fee="8000">أربيل (8,000 د.ع)</option>
-          <option value="النجف" data-fee="6000">النجف (6,000 د.ع)</option>
-          <option value="كربلاء" data-fee="6000">كربلاء (6,000 د.ع)</option>
-          <option value="بابل" data-fee="6000">بابل (6,000 د.ع)</option>
-          <option value="ديالى" data-fee="6000">ديالى (6,000 د.ع)</option>
-          <option value="الأنبار" data-fee="7000">الأنبار (7,000 د.ع)</option>
-          <option value="كركوك" data-fee="7000">كركوك (7,000 د.ع)</option>
-          <option value="نينوى" data-fee="8000">نينوى (8,000 د.ع)</option>
-          <option value="السليمانية" data-fee="8000">السليمانية (8,000 د.ع)</option>
-          <option value="دهوك" data-fee="8000">دهوك (8,000 د.ع)</option>
-          <option value="ذار قار" data-fee="7000">ذار قار (7,000 د.ع)</option>
-          <option value="ميسان" data-fee="7000">ميسان (7,000 د.ع)</option>
-          <option value="المثنى" data-fee="7000">المثنى (7,000 د.ع)</option>
-          <option value="القادسية" data-fee="6000">القادسية (6,000 د.ع)</option>
-          <option value="واسط" data-fee="6000">واسط (6,000 د.ع)</option>
-          <option value="صلاح الدين" data-fee="7000">صلاح الدين (7,000 د.ع)</option>
+          <option value="">جاري تحميل المحافظات...</option>
         </select>
       </div>
 
@@ -177,7 +160,7 @@
         <p id="storeAccountInfo" style="font-weight: bold; margin: 5px 0 0 0; color: #2c3e50;"></p>
       </div>
 
-      <button onclick="submitOrder()" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em;">إرسال الطلب عبر واتساب وحفظ المخزون</button>
+      <button onclick="confirmOrder()" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em;">إرسال الطلب عبر واتساب وحفظ المخزون</button>
     </div>
   </div>
 
@@ -193,20 +176,22 @@
     const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
 
     let products = [];
+    let deliveryZones = [];
     let cart = [];
-    let currentDeliveryFee = 5000;
+    let currentDeliveryFee = 0;
 
     window.onload = function() {
       fetch(scriptURL)
         .then(response => response.json())
         .then(data => {
-          products = data;
+          products = data.products || [];
+          deliveryZones = data.deliveryZones || [];
           renderProducts();
-          updateDeliveryFee();
+          renderDeliveryZones();
         })
         .catch(error => {
-          console.error("Error loading products:", error);
-          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center;'>تعذر تحميل المنتجات. تأكد من صحة رابط الـ Script.</p>";
+          console.error("Error loading data:", error);
+          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center;'>تعذر تحميل البيانات. تأكد من صحة رابط الـ Script.</p>";
         });
     };
 
@@ -236,6 +221,21 @@
         `;
       });
       listDiv.innerHTML = html;
+    }
+
+    function renderDeliveryZones() {
+      const citySelect = document.getElementById('customerCity');
+      if (deliveryZones.length === 0) {
+        citySelect.innerHTML = '<option value="">لا توجد محافظات مضافة في جدول Delivery_Zones</option>';
+        return;
+      }
+
+      let html = '';
+      deliveryZones.forEach((zone, index) => {
+        html += `<option value="${zone.city}" data-fee="${zone.fee}">${zone.city} (${zone.fee.toLocaleString()} د.ع)</option>`;
+      });
+      citySelect.innerHTML = html;
+      updateDeliveryFee();
     }
 
     function addToCart(index) {
@@ -294,11 +294,10 @@
       renderCart();
     }
 
-    // Dynamic Delivery Fee based on selected governorate
     function updateDeliveryFee() {
       const citySelect = document.getElementById('customerCity');
       const selectedOption = citySelect.options[citySelect.selectedIndex];
-      currentDeliveryFee = Number(selectedOption.getAttribute('data-fee')) || 5000;
+      currentDeliveryFee = Number(selectedOption.getAttribute('data-fee')) || 0;
       document.getElementById('delivery-fee-display').innerText = currentDeliveryFee.toLocaleString();
       renderCart();
     }
@@ -322,7 +321,8 @@
       }
     }
 
-    function submitOrder() {
+    // Confirmation step before sending order
+    function confirmOrder() {
       if (cart.length === 0) {
         alert("سلة المشتريات فارغة!");
         return;
@@ -342,6 +342,22 @@
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       const total = subtotal + currentDeliveryFee;
 
+      let summaryText = `تأكيد تفاصيل الطلب:\n\n` +
+                        `👤 الاسم: ${name}\n` +
+                        `📱 الهاتف: ${phone}\n` +
+                        `📍 المحافظة: ${city}\n` +
+                        `🏠 العنوان: ${address}\n` +
+                        `💳 الدفع: ${paymentMethod}\n` +
+                        `🚚 التوصيل: ${currentDeliveryFee.toLocaleString()} د.ع\n` +
+                        `💰 المجموع الكلي: ${total.toLocaleString()} د.ع\n\n` +
+                        `هل أنت متأكد من إرسال الطلب؟`;
+
+      if (confirm(summaryText)) {
+        submitOrder(name, phone, city, address, paymentMethod, total);
+      }
+    }
+
+    function submitOrder(name, phone, city, address, paymentMethod, total) {
       const orderData = {
         name: name,
         phone: phone,
