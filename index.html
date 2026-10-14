@@ -24,37 +24,64 @@
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    
+    /* Grid layout for vertical product cards */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
     .product-card {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 12px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid #eee;
-      padding: 10px 0;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
     .product-img {
-      width: 65px;
-      height: 65px;
+      width: 100%;
+      height: 180px; /* Larger image height for clear focus */
       object-fit: cover;
       border-radius: 8px;
-      border: 1px solid #ddd;
+      margin-bottom: 10px;
     }
     .product-info {
-      flex-grow: 1;
+      width: 100%;
+      margin-bottom: 10px;
     }
     .product-info h4 {
-      margin: 0 0 5px 0;
+      margin: 5px 0;
+      font-size: 1.1em;
+      color: #2c3e50;
     }
-    button {
+    .product-price {
+      font-weight: bold;
+      color: #27ae60;
+      margin-bottom: 4px;
+    }
+    .product-stock {
+      font-size: 0.85em;
+    }
+    .btn-add {
+      width: 100%;
       background-color: #27ae60;
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
+      padding: 10px;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 1em;
+      font-weight: bold;
     }
-    button:hover {
+    .btn-add:hover {
       background-color: #219653;
     }
+
     .cart-section, .checkout-section {
       margin-top: 20px;
       border-top: 2px solid #ecf0f1;
@@ -100,9 +127,9 @@
   <div class="container">
     <h1>متجري الإلكتروني</h1>
     
-    <!-- Products List Container -->
-    <div id="products-list">
-      <p style="text-align: center;">جاري تحميل المنتجات...</p>
+    <!-- Products Grid Container -->
+    <div id="products-list" class="products-grid">
+      <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات...</p>
     </div>
 
     <!-- Shopping Cart Section -->
@@ -133,7 +160,7 @@
         <input type="text" id="customerPhone" placeholder="07701234567">
       </div>
 
-      <!-- Governorates List loaded dynamically from Delivery_Zones tab -->
+      <!-- Dynamic Governorates from Delivery_Zones -->
       <div class="form-group">
         <label>المحافظة:</label>
         <select id="customerCity" onchange="updateDeliveryFee()">
@@ -160,7 +187,7 @@
         <p id="storeAccountInfo" style="font-weight: bold; margin: 5px 0 0 0; color: #2c3e50;"></p>
       </div>
 
-      <button onclick="confirmOrder()" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em;">إرسال الطلب عبر واتساب وحفظ المخزون</button>
+      <button onclick="confirmOrder()" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em;" class="btn-add">إرسال الطلب عبر واتساب وحفظ المخزون</button>
     </div>
   </div>
 
@@ -191,14 +218,14 @@
         })
         .catch(error => {
           console.error("Error loading data:", error);
-          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center;'>تعذر تحميل البيانات. تأكد من صحة رابط الـ Script.</p>";
+          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center; grid-column: 1/-1;'>تعذر تحميل البيانات. تأكد من صحة رابط الـ Script.</p>";
         });
     };
 
     function renderProducts() {
       const listDiv = document.getElementById('products-list');
       if (products.length === 0) {
-        listDiv.innerHTML = "<p style='text-align: center;'>لا توجد منتجات مضافة حالياً.</p>";
+        listDiv.innerHTML = "<p style='text-align: center; grid-column: 1/-1;'>لا توجد منتجات مضافة حالياً.</p>";
         return;
       }
       
@@ -206,15 +233,15 @@
       products.forEach((prod, index) => {
         html += `
           <div class="product-card">
-            <img src="${prod.image}" alt="${prod.name}" class="product-img" onError="this.src='https://via.placeholder.com/65?text=No+Image';">
+            <img src="${prod.image}" alt="${prod.name}" class="product-img" onError="this.src='https://via.placeholder.com/200x180?text=No+Image';">
             <div class="product-info">
               <h4>${prod.name}</h4>
-              <div>السعر: ${prod.price.toLocaleString()} د.ع</div>
-              <div style="font-size: 0.85em; color: ${prod.stock > 0 ? '#27ae60' : '#c0392b'};">
+              <div class="product-price">${prod.price.toLocaleString()} د.ع</div>
+              <div class="product-stock" style="color: ${prod.stock > 0 ? '#27ae60' : '#c0392b'};">
                 المتوفر في المخزن: ${prod.stock}
               </div>
             </div>
-            <button onclick="addToCart(${index})" ${prod.stock <= 0 ? 'disabled style="background-color:#ccc;"' : ''}>
+            <button class="btn-add" onclick="addToCart(${index})" ${prod.stock <= 0 ? 'disabled style="background-color:#ccc;"' : ''}>
               ${prod.stock > 0 ? 'إضافة للسلة' : 'نفذت الكمية'}
             </button>
           </div>
@@ -277,7 +304,7 @@
         html += `
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em;">
             <span>${item.name} (${item.quantity}x) - ${(item.price * item.quantity).toLocaleString()} د.ع</span>
-            <button onclick="removeFromCart(${idx})" style="background-color: #c0392b; padding: 3px 8px; font-size: 0.8em;">حذف</button>
+            <button onclick="removeFromCart(${idx})" style="background-color: #c0392b; padding: 3px 8px; font-size: 0.8em; color: white; border: none; border-radius: 4px;">حذف</button>
           </div>
         `;
       });
@@ -321,7 +348,6 @@
       }
     }
 
-    // Confirmation step before sending order
     function confirmOrder() {
       if (cart.length === 0) {
         alert("سلة المشتريات فارغة!");
