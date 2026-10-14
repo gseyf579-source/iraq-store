@@ -26,10 +26,17 @@
     }
     .product-card {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
       border-bottom: 1px solid #eee;
       padding: 10px 0;
+    }
+    .product-img {
+      width: 65px;
+      height: 65px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #ddd;
     }
     .product-info {
       flex-grow: 1;
@@ -106,7 +113,7 @@
         مجموع المنتجات: <span id="cart-subtotal">0</span> د.ع
       </div>
       <div>
-        أجور التوصيل: <span id="delivery-fee-display">0</span> د.ع
+        أجور التوصيل: <span id="delivery-fee-display">5,000</span> د.ع
       </div>
       <div style="margin-top: 5px; font-size: 1.1em; color: #c0392b; font-weight: bold;">
         المجموع الكلي: <span id="cart-total">0</span> د.ع
@@ -126,13 +133,28 @@
         <input type="text" id="customerPhone" placeholder="07701234567">
       </div>
 
+      <!-- Governorates List with Custom Delivery Fees -->
       <div class="form-group">
         <label>المحافظة:</label>
         <select id="customerCity" onchange="updateDeliveryFee()">
           <option value="بغداد" data-fee="5000">بغداد (5,000 د.ع)</option>
           <option value="البصرة" data-fee="8000">البصرة (8,000 د.ع)</option>
-          <option value="ديالى" data-fee="7000">ديالى (7,000 د.ع)</option>
-          <option value="أربيل" data-fee="10000">أربيل (10,000 د.ع)</option>
+          <option value="أربيل" data-fee="8000">أربيل (8,000 د.ع)</option>
+          <option value="النجف" data-fee="6000">النجف (6,000 د.ع)</option>
+          <option value="كربلاء" data-fee="6000">كربلاء (6,000 د.ع)</option>
+          <option value="بابل" data-fee="6000">بابل (6,000 د.ع)</option>
+          <option value="ديالى" data-fee="6000">ديالى (6,000 د.ع)</option>
+          <option value="الأنبار" data-fee="7000">الأنبار (7,000 د.ع)</option>
+          <option value="كركوك" data-fee="7000">كركوك (7,000 د.ع)</option>
+          <option value="نينوى" data-fee="8000">نينوى (8,000 د.ع)</option>
+          <option value="السليمانية" data-fee="8000">السليمانية (8,000 د.ع)</option>
+          <option value="دهوك" data-fee="8000">دهوك (8,000 د.ع)</option>
+          <option value="ذار قار" data-fee="7000">ذار قار (7,000 د.ع)</option>
+          <option value="ميسان" data-fee="7000">ميسان (7,000 د.ع)</option>
+          <option value="المثنى" data-fee="7000">المثنى (7,000 د.ع)</option>
+          <option value="القادسية" data-fee="6000">القادسية (6,000 د.ع)</option>
+          <option value="واسط" data-fee="6000">واسط (6,000 د.ع)</option>
+          <option value="صلاح الدين" data-fee="7000">صلاح الدين (7,000 د.ع)</option>
         </select>
       </div>
 
@@ -150,7 +172,6 @@
         </select>
       </div>
 
-      <!-- Wallet Number Display Box (Personal Account Numbers) -->
       <div id="walletGroup" class="wallet-box">
         <label id="walletLabel" style="color: #16a085;"></label>
         <p id="storeAccountInfo" style="font-weight: bold; margin: 5px 0 0 0; color: #2c3e50;"></p>
@@ -169,14 +190,12 @@
   </div>
 
   <script>
-    // Configured with your exact Google Apps Script Web App URL
     const scriptURL = "https://script.google.com/macros/s/AKfycbwmwbcGsHTncwFeo9cjdzLyR-snXsRko9QoHA6riCCKV2THkMXpdnb0h3p5pXhpdxDN/exec";
 
     let products = [];
     let cart = [];
     let currentDeliveryFee = 5000;
 
-    // Fetch products from Google Sheets on load
     window.onload = function() {
       fetch(scriptURL)
         .then(response => response.json())
@@ -202,6 +221,7 @@
       products.forEach((prod, index) => {
         html += `
           <div class="product-card">
+            <img src="${prod.image}" alt="${prod.name}" class="product-img" onError="this.src='https://via.placeholder.com/65?text=No+Image';">
             <div class="product-info">
               <h4>${prod.name}</h4>
               <div>السعر: ${prod.price.toLocaleString()} د.ع</div>
@@ -274,6 +294,7 @@
       renderCart();
     }
 
+    // Dynamic Delivery Fee based on selected governorate
     function updateDeliveryFee() {
       const citySelect = document.getElementById('customerCity');
       const selectedOption = citySelect.options[citySelect.selectedIndex];
@@ -332,7 +353,6 @@
         items: cart
       };
 
-      // Send to Google Sheets Backend
       fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify(orderData)
@@ -362,7 +382,6 @@
       });
     }
 
-    // Gallery Image Uploader Tool Script
     function uploadImage(event) {
       const file = event.target.files[0];
       if (!file) return;
