@@ -160,7 +160,7 @@
         <input type="text" id="customerPhone" placeholder="07701234567">
       </div>
 
-      <!-- قائمة المحافظات باللغة العربية فقط -->
+      <!-- قائمة المحافظات باللغة العربية -->
       <div class="form-group">
         <label>المحافظة:</label>
         <select id="customerCity" onchange="updateDeliveryFee()">
@@ -208,7 +208,7 @@
     let currentDeliveryFee = 0;
 
     window.onload = function() {
-      // إظهار أداة الرفع للمدير فقط إذا تم فتح الرابط بحساب المدير (?admin=true)
+      // إظهار أداة الرفع للمدير فقط عند فتح الرابط بـ ?admin=true
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('admin') === 'true') {
         document.getElementById('adminUploaderBox').style.display = 'block';
@@ -224,7 +224,7 @@
         })
         .catch(error => {
           console.error("Error loading data:", error);
-          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center; grid-column: 1/-1;'>تعذر تحميل البيانات. تأكد من صحة رابط الـ Script.</p>";
+          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center; grid-column: 1/-1;'>تعذر تحميل البيانات.</p>";
         });
     };
 
@@ -256,7 +256,6 @@
       listDiv.innerHTML = html;
     }
 
-    // عرض أسماء المحافظات باللغة العربية فقط في القائمة
     function renderDeliveryZones() {
       const citySelect = document.getElementById('customerCity');
       if (deliveryZones.length === 0) {
@@ -404,6 +403,7 @@
 
       fetch(scriptURL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(orderData)
       })
       .then(res => res.json())
@@ -427,7 +427,7 @@
       })
       .catch(err => {
         console.error(err);
-        alert("فشل الاتصال بالخادم.");
+        alert("فشل الاتصال بالخادم. حاول مرة أخرى.");
       });
     }
 
@@ -443,6 +443,7 @@
 
         fetch(scriptURL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: "uploadImgur", image: base64String })
         })
         .then(res => res.json())
@@ -459,7 +460,7 @@
         .catch(err => {
           console.error(err);
           linkBox.value = "خطأ في الاتصال";
-          alert("حدث خطأ في الاتصال بالخادم. تأكد من صحة scriptURL.");
+          alert("حدث خطأ في الاتصال بالخادم.");
         });
       };
       reader.readAsDataURL(file);
