@@ -401,6 +401,10 @@
         items: cart
       };
 
+      // Show loading indicator
+      const submitBtn = document.querySelector('.checkout-section button');
+      if (submitBtn) submitBtn.innerText = "جاري إرسال الطلب...";
+
       fetch(scriptURL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -413,24 +417,29 @@
           let waMessage = `مرحباً، أود تأكيد طلبي الجديد:\n📦 المنتجات: ${itemsText}\n👤 الاسم: ${name}\n📱 رقم الهاتف: ${phone}\n📍 المحافظة: ${city}\n🏠 العنوان: ${address}\n💳 طريقة الدفع: ${paymentMethod}\n🚚 أجور التوصيل: ${currentDeliveryFee.toLocaleString()} د.ع\n💰 المجموع الكلي: ${total.toLocaleString()} د.ع`;
           
           let whatsappUrl = `https://wa.me/9647782292062?text=${encodeURIComponent(waMessage)}`;
-          window.open(whatsappUrl, '_blank');
           
-          alert("تم إرسال الطلب بنجاح وتحديث المخزون!");
+          // Reset cart & inputs
           cart = [];
           renderCart();
           document.getElementById('customerName').value = '';
           document.getElementById('customerPhone').value = '';
           document.getElementById('customerAddress').value = '';
+          if (submitBtn) submitBtn.innerText = "إرسال الطلب عبر واتساب وحفظ المخزون";
+
+          // 1. Try direct redirection (Works best inside Facebook In-App Browser)
+          window.location.href = whatsappUrl;
+
         } else {
           alert("حدث خطأ أثناء حفظ الطلب: " + response.message);
+          if (submitBtn) submitBtn.innerText = "إرسال الطلب عبر واتساب وحفظ المخزون";
         }
       })
       .catch(err => {
         console.error(err);
         alert("فشل الاتصال بالخادم. حاول مرة أخرى.");
+        if (submitBtn) submitBtn.innerText = "إرسال الطلب عبر واتساب وحفظ المخزون";
       });
     }
-
     function uploadImage(event) {
       const file = event.target.files[0];
       if (!file) return;
