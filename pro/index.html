@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f8; margin: 0; padding: 15px; }
+        body { background-color: #f4f6f8; margin: 0; padding: 15px; padding-bottom: 90px; } /* مساحة السلة العائمة بالأسفل */
         
         .demo-banner {
             background-color: #ff9800;
@@ -78,6 +78,52 @@
         }
         .add-btn:active { transform: scale(0.98); }
 
+        /* شريط السلة العائم في الأسفل */
+        .floating-cart {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+        .checkout-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* تنبيه الإضافة السريع (Toast) */
+        #toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: fixed;
+            z-index: 1001;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            font-size: 14px;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 1.5s; }
+
+        @keyframes fadein { from {bottom: 50px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 50px; opacity: 0;} }
+
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -110,7 +156,7 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج بالاسم العربي أو الإنجليزي..." onkeyup="handleSearch()">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج..." onkeyup="handleSearch()">
     </div>
 
     <div class="products-grid" id="productsContainer">
@@ -119,11 +165,21 @@
 
     <div class="pagination-container" id="paginationContainer"></div>
 
+    <!-- شريط السلة العائم -->
+    <div class="floating-cart" id="floatingCart" style="display: none;">
+        <div>🛒 السلة: <span id="cartCount">0</span> منتج</div>
+        <button class="checkout-btn" onclick="checkout()">إتمام الطلب</button>
+    </div>
+
+    <!-- تنبيه الإضافة السريع -->
+    <div id="toast">تمت إضافة المنتج إلى السلة</div>
+
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
 
         let allProducts = [];
         let filteredProducts = [];
+        let cart = [];
         let currentPage = 1;
         const itemsPerPage = 8;
 
@@ -200,6 +256,24 @@
             renderPagination();
         }
 
+        function addToCart(productName) {
+            cart.push(productName);
+            document.getElementById('cartCount').innerText = cart.length;
+            document.getElementById('floatingCart').style.display = 'flex';
+
+            // إظهار تنبيه خفيف غير معطل للحركة
+            const toast = document.getElementById('toast');
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
+        }
+
+        function checkout() {
+            if (cart.length === 0) return;
+            const message = `مرحباً، أريد إتمام الطلب للمنتجات التالية:\n- ` + cart.join('\n- ');
+            const whatsappURL = `https://wa.me/?text=` + encodeURIComponent(message);
+            window.open(whatsappURL, '_blank');
+        }
+
         function renderPagination() {
             const paginationContainer = document.getElementById('paginationContainer');
             paginationContainer.innerHTML = '';
@@ -218,10 +292,6 @@
                 };
                 paginationContainer.appendChild(button);
             }
-        }
-
-        function addToCart(productName) {
-            alert('تمت إضافة ' + productName + ' إلى السلة!');
         }
 
         fetchProducts();
