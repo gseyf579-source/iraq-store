@@ -162,7 +162,7 @@
             outline: none;
         }
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
-        .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; text-align: center;}
         .cancel-btn { background-color: #95a5a6; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
         .summary-box {
@@ -263,6 +263,15 @@
                 <label>رقم الهاتف:</label>
                 <input type="tel" id="custPhone" placeholder="07xxxxxxxxx">
             </div>
+            <div class="form-group">
+                <label>طريقة الدفع:</label>
+                <select id="paymentMethod">
+                    <option value="Cash on Delivery">الدفع عند الاستلام (Cash on Delivery)</option>
+                    <option value="ZainCash">زين كاش (ZainCash)</option>
+                    <option value="Mastercard">ماستركارد (Mastercard)</option>
+                    <option value="التحويل البنكي">تحويل بنكي</option>
+                </select>
+            </div>
 
             <div class="summary-box">
                 <div class="summary-row">
@@ -282,7 +291,7 @@
 
             <div class="modal-actions">
                 <button class="cancel-btn" onclick="closeCartModal()">إغلاق</button>
-                <button class="submit-order-btn" id="submitOrderBtn" onclick="sendOrderWhatsApp()">تأكيد وإرسال للواتساب</button>
+                <a id="whatsappOrderBtn" href="#" target="_blank" class="submit-order-btn" onclick="submitOrder()">تأكيد وإرسال للواتساب</a>
             </div>
         </div>
     </div>
@@ -307,14 +316,12 @@
                 const response = await fetch(scriptURL);
                 const data = await response.json();
                 
-                // استقبال المنتجات
                 if (Array.isArray(data.products)) {
                     allProducts = data.products;
                 } else if (Array.isArray(data)) {
-                    allProducts = data; // دعم رجعي
+                    allProducts = data;
                 }
 
-                // استقبال مناطق التوصيل
                 if (Array.isArray(data.delivery_zones)) {
                     deliveryZones = data.delivery_zones;
                     populateZonesDropdown();
@@ -337,7 +344,7 @@
             
             deliveryZones.forEach(zone => {
                 const zoneName = zone.governorate || zone.Governorate || zone.zone || zone.Zone || 'منطقة';
-                const zoneFee = zone.fee || zone.Fee || zone.delivery_fee || zone.Delivery_Fee || 0;
+                const zoneFee = zone.delivery_fee_iqd || zone.Delivery_Fee_IQD || zone.fee || zone.Fee || 0;
                 
                 govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName} (${parseInt(zoneFee).toLocaleString()} د.ع)</option>`;
             });
@@ -474,27 +481,56 @@
             currentDeliveryFee = selectedOption && selectedOption.dataset.fee ? parseFloat(selectedOption.dataset.fee) : 0;
             
             document.getElementById('deliveryFeeAmount').innerText = currentDeliveryFee.toLocaleString();
-            document.getElementById('totalAmount').innerText = (currentSubtotal + currentDeliveryFee).toLocaleString();
+            const totalFinal = currentSubtotal + currentDeliveryFee;
+            document.getElementById('totalAmount').innerText = totalFinal.toLocaleString();
+
+            // تحديث رابط الواتساب المباشر لمنع الحظر (Popup Block)
+            updateWhatsAppLink(totalFinal);
         }
 
-        async function sendOrderWhatsApp() {
+        function updateWhatsAppLink(totalFinal) {
+            const name = document.getElementById('custName').value.trim() || 'زبون';
+            const gov = document.getElementById('custGov').value || 'غير محدد';
+            const address = document.getElementById('custAddress').value.trim() || '';
+            const phone = document.getElementById('custPhone').value.trim() || '';
+            const payment = document.getElementById('paymentMethod').value;
+
+            let message = `🛒 *طلب جديد عبر النظام السحابي Pro*\n\n`;
+            message += `👤 *الاسم:* ${name}\n`;
+            message += `📍 *المحافظة:* ${gov}\n`;
+            message += `🏠 *العنوان التفصيلي:* ${address}\n`;
+            message += `📱 *الهاتف:* ${phone}\n`;
+            message += `💳 *طريقة الدفع:* ${payment}\n\n`;
+            message += `📦 *المنتجات المطلوبة:*\n`;
+            
+            cart.forEach((item, index) => {
+                message += `${index + 1}. ${item.name} (العدد: ${item.qty}) - ${item.price} د.ع\n`;
+            });
+
+            message += `\n💵 *مجموع المنتجات:* ${currentSubtotal.toLocaleString()} د.ع`;
+            message += `\n🚚 *أجور التوصيل:* ${currentDeliveryFee.toLocaleString()} د.ع`;
+            message += `\n💰 *المبلغ الكلي النهائي:* ${totalFinal.toLocaleString()} د.ع`;
+
+            const whatsappURL = `https://wa.me/${merchantPhone}?text=` + encodeURIComponent(message);
+            document.getElementById('whatsappOrderBtn').href = whatsappURL;
+        }
+
+        async function submitOrder() {
             const name = document.getElementById('custName').value.trim();
             const gov = document.getElementById('custGov').value;
             const address = document.getElementById('custAddress').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
+            const payment = document.getElementById('paymentMethod').value;
 
             if (!name || !gov || !address || !phone) {
                 alert('يرجى ملء كافة معلومات الاسم والمحافظة والعنوان ورقم الهاتف!');
+                event.preventDefault(); // منع الانتقال إذا كانت الحقول ناقصة
                 return;
             }
 
-            const btn = document.getElementById('submitOrderBtn');
-            btn.innerText = 'جاري تسجيل الطلب وتوزيعه بالسحابة...';
-            btn.disabled = true;
-
             const totalFinal = currentSubtotal + currentDeliveryFee;
 
-            // إرسال البيانات للـ Backend لتسجيلها في Orders, Order_Items, Transactions
+            // إرسال البيانات للـ Backend لتسجيلها في الجداول بدقة
             try {
                 await fetch(scriptURL, {
                     method: 'POST',
@@ -505,6 +541,7 @@
                         custGov: gov,
                         custAddress: address,
                         custPhone: phone,
+                        paymentMethod: payment,
                         cart: cart,
                         subtotal: currentSubtotal,
                         deliveryFee: currentDeliveryFee,
@@ -515,27 +552,6 @@
                 console.error('تعذر تسجيل البيانات في الجداول:', err);
             }
 
-            // تجهيز رسالة الواتساب للتاجر
-            let message = `🛒 *طلب جديد عبر النظام السحابي Pro*\n\n`;
-            message += `👤 *الاسم:* ${name}\n`;
-            message += `📍 *المحافظة:* ${gov}\n`;
-            message += `🏠 *العنوان التفصيلي:* ${address}\n`;
-            message += `📱 *الهاتف:* ${phone}\n\n`;
-            message += `📦 *المنتجات المطلوبة:*\n`;
-            
-            cart.forEach((item, index) => {
-                message += `${index + 1}. ${item.name} (العدد: ${item.qty}) - ${item.price} د.ع\n`;
-            });
-
-            message += `\n💵 *مجموع المنتجات:* ${currentSubtotal.toLocaleString()} د.ع`;
-            message += `\n🚚 *أجور التوصيل (من جدول Zones):* ${currentDeliveryFee.toLocaleString()} د.ع`;
-            message += `\n💰 *المبلغ الكلي النهائي:* ${totalFinal.toLocaleString()} د.ع`;
-
-            btn.innerText = 'تأكيد وإرسال للواتساب';
-            btn.disabled = false;
-
-            const whatsappURL = `https://wa.me/${merchantPhone}?text=` + encodeURIComponent(message);
-            window.open(whatsappURL, '_blank');
             closeCartModal();
         }
 
