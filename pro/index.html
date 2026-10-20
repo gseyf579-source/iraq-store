@@ -1,1 +1,482 @@
+<div style="background-color: #f39c12; color: white; text-align: center; padding: 10px; font-weight: bold; border-radius: 5px; margin-bottom: 15px;">
+  📢 هذا المتجر عبارة عن نموذج تجريبي (Demo) للنظام البرمجي! هل تريد متجراً مثله لعلامتك التجارية؟ تواصل معنا الآن.
+</div><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>متجري الإلكتروني</title>
+  <style>
+    body {
+      font-family: Tahoma, sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 10px;
+      color: #333;
+    }
+    h1, h2, h3 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* شبكة المنتجات بتصميم البطاقات العمودية */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .product-card {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+    .product-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .product-info {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .product-info h4 {
+      margin: 5px 0;
+      font-size: 1.1em;
+      color: #2c3e50;
+    }
+    .product-price {
+      font-weight: bold;
+      color: #27ae60;
+      margin-bottom: 4px;
+    }
+    .product-stock {
+      font-size: 0.85em;
+    }
+    .btn-add {
+      width: 100%;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: bold;
+    }
+    .btn-add:hover {
+      background-color: #219653;
+    }
 
+    .cart-section, .checkout-section {
+      margin-top: 20px;
+      border-top: 2px solid #ecf0f1;
+      padding-top: 15px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .wallet-box {
+      background: #e8f8f5;
+      border: 1px solid #a3e4d7;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 8px;
+      display: none;
+    }
+    .admin-uploader {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 30px auto;
+      max-width: 600px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      text-align: center;
+      border: 2px dashed #27ae60;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>متجري الإلكتروني</h1>
+    
+    <!-- قائمة المنتجات الشبكية -->
+    <div id="products-list" class="products-grid">
+      <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات...</p>
+    </div>
+
+    <!-- سلة المشتريات -->
+    <div class="cart-section">
+      <h3>سلة المشتريات</h3>
+      <div id="cart-items">السلة فارغة حالياً.</div>
+      <div style="margin-top: 10px; font-weight: bold;">
+        مجموع المنتجات: <span id="cart-subtotal">0</span> د.ع
+      </div>
+      <div>
+        أجور التوصيل: <span id="delivery-fee-display">0</span> د.ع
+      </div>
+      <div style="margin-top: 5px; font-size: 1.1em; color: #c0392b; font-weight: bold;">
+        المجموع الكلي: <span id="cart-total">0</span> د.ع
+      </div>
+    </div>
+
+    <!-- نموذج إتمام الطلب -->
+    <div class="checkout-section">
+      <h3>إتمام الطلب</h3>
+      <div class="form-group">
+        <label>الاسم الكامل:</label>
+        <input type="text" id="customerName" placeholder="أدخل اسمك الكريم">
+      </div>
+      
+      <div class="form-group">
+        <label>رقم الهاتف:</label>
+        <input type="text" id="customerPhone" placeholder="07701234567">
+      </div>
+
+      <!-- قائمة المحافظات باللغة العربية -->
+      <div class="form-group">
+        <label>المحافظة:</label>
+        <select id="customerCity" onchange="updateDeliveryFee()">
+          <option value="">جاري تحميل المحافظات...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>العنوان التفصيلي:</label>
+        <input type="text" id="customerAddress" placeholder="المنطقة، الشارع، أقرب نقطة دالة">
+      </div>
+
+      <div class="form-group">
+        <label>طريقة الدفع:</label>
+        <select id="paymentMethod" onchange="toggleWalletField()">
+          <option value="Cash On Delivery">الدفع عند الاستلام (Cash On Delivery)</option>
+          <option value="ZainCash">زين كاش (ZainCash)</option>
+          <option value="QiCard">كي كارت (QiCard)</option>
+        </select>
+      </div>
+
+      <div id="walletGroup" class="wallet-box">
+        <label id="walletLabel" style="color: #16a085;"></label>
+        <p id="storeAccountInfo" style="font-weight: bold; margin: 5px 0 0 0; color: #2c3e50;"></p>
+      </div>
+
+      <button onclick="confirmOrder()" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em;" class="btn-add">إرسال الطلب عبر واتساب وحفظ المخزون</button>
+    </div>
+  </div>
+
+  <!-- أداة رفع الصور للمدير (مخفية تلقائياً عن الزبائن) -->
+  <div id="adminUploaderBox" class="admin-uploader" style="display: none;">
+    <h3 style="color: #27ae60; margin-top: 0;">أداة رفع صور المنتجات (للمدير)</h3>
+    <p style="font-size: 0.9em; color: #666;">اختر صورة من معرض هاتفك ليتم رفعها وتوليد رابط مباشر لجدول المنتجات:</p>
+    <input type="file" id="galleryFile" accept="image/*" onchange="uploadImage(event)" style="margin-bottom: 10px;">
+    <input type="text" id="generatedLink" readonly placeholder="رابط الصورة الناتج سيظهر هنا..." style="padding: 8px; text-align: center; background: #f9f9f9;">
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec";
+
+    let products = [];
+    let deliveryZones = [];
+    let cart = [];
+    let currentDeliveryFee = 0;
+
+    window.onload = function() {
+      // إظهار أداة الرفع للمدير فقط عند فتح الرابط بـ ?admin=true
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('admin') === 'true') {
+        document.getElementById('adminUploaderBox').style.display = 'block';
+      }
+
+      fetch(scriptURL)
+        .then(response => response.json())
+        .then(data => {
+          products = data.products || [];
+          deliveryZones = data.deliveryZones || [];
+          renderProducts();
+          renderDeliveryZones();
+        })
+        .catch(error => {
+          console.error("Error loading data:", error);
+          document.getElementById('products-list').innerHTML = "<p style='color:red; text-align:center; grid-column: 1/-1;'>تعذر تحميل البيانات.</p>";
+        });
+    };
+
+    function renderProducts() {
+      const listDiv = document.getElementById('products-list');
+      if (products.length === 0) {
+        listDiv.innerHTML = "<p style='text-align: center; grid-column: 1/-1;'>لا توجد منتجات مضافة حالياً.</p>";
+        return;
+      }
+      
+      let html = '';
+      products.forEach((prod, index) => {
+        html += `
+          <div class="product-card">
+            <img src="${prod.image}" alt="${prod.name}" class="product-img" onError="this.src='https://via.placeholder.com/200x180?text=No+Image';">
+            <div class="product-info">
+              <h4>${prod.name}</h4>
+              <div class="product-price">${prod.price.toLocaleString()} د.ع</div>
+              <div class="product-stock" style="color: ${prod.stock > 0 ? '#27ae60' : '#c0392b'};">
+                المتوفر في المخزن: ${prod.stock}
+              </div>
+            </div>
+            <button class="btn-add" onclick="addToCart(${index})" ${prod.stock <= 0 ? 'disabled style="background-color:#ccc;"' : ''}>
+              ${prod.stock > 0 ? 'إضافة للسلة' : 'نفذت الكمية'}
+            </button>
+          </div>
+        `;
+      });
+      listDiv.innerHTML = html;
+    }
+
+    function renderDeliveryZones() {
+      const citySelect = document.getElementById('customerCity');
+      if (deliveryZones.length === 0) {
+        citySelect.innerHTML = '<option value="">لا توجد محافظات مضافة في جدول Delivery_Zones</option>';
+        return;
+      }
+
+      let html = '';
+      deliveryZones.forEach((zone) => {
+        html += `<option value="${zone.city}" data-fee="${zone.fee}">${zone.city}</option>`;
+      });
+      citySelect.innerHTML = html;
+      updateDeliveryFee();
+    }
+
+    function addToCart(index) {
+      const prod = products[index];
+      const existing = cart.find(item => item.productId === prod.productId);
+      
+      if (existing) {
+        if (existing.quantity < prod.stock) {
+          existing.quantity++;
+        } else {
+          alert("عذراً، الكمية المطلوبة تتجاوز المخزون المتوفر.");
+          return;
+        }
+      } else {
+        cart.push({
+          productId: prod.productId,
+          name: prod.name,
+          price: prod.price,
+          quantity: 1
+        });
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      const cartDiv = document.getElementById('cart-items');
+      if (cart.length === 0) {
+        cartDiv.innerHTML = "السلة فارغة حالياً.";
+        document.getElementById('cart-subtotal').innerText = "0";
+        document.getElementById('cart-total').innerText = "0";
+        return;
+      }
+
+      let html = '';
+      let subtotal = 0;
+
+      cart.forEach((item, idx) => {
+        subtotal += item.price * item.quantity;
+        html += `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em;">
+            <span>${item.name} (${item.quantity}x) - ${(item.price * item.quantity).toLocaleString()} د.ع</span>
+            <button onclick="removeFromCart(${idx})" style="background-color: #c0392b; padding: 3px 8px; font-size: 0.8em; color: white; border: none; border-radius: 4px;">حذف</button>
+          </div>
+        `;
+      });
+
+      cartDiv.innerHTML = html;
+      document.getElementById('cart-subtotal').innerText = subtotal.toLocaleString();
+      
+      const total = subtotal + currentDeliveryFee;
+      document.getElementById('cart-total').innerText = total.toLocaleString();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function updateDeliveryFee() {
+      const citySelect = document.getElementById('customerCity');
+      const selectedOption = citySelect.options[citySelect.selectedIndex];
+      currentDeliveryFee = Number(selectedOption.getAttribute('data-fee')) || 0;
+      document.getElementById('delivery-fee-display').innerText = currentDeliveryFee.toLocaleString();
+      renderCart();
+    }
+
+    function toggleWalletField() {
+      const payment = document.getElementById('paymentMethod').value;
+      const walletGroup = document.getElementById('walletGroup');
+      const walletLabel = document.getElementById('walletLabel');
+      const storeAccountInfo = document.getElementById('storeAccountInfo');
+      
+      if (payment === "ZainCash") {
+        walletGroup.style.display = "block";
+        walletLabel.innerText = "تحويل المبلغ إلى محفظة زين كاش الخاصة بالمتجر:";
+        storeAccountInfo.innerText = "078XXXXXXXX (رقم محفظة زين كاش الخاص بك)";
+      } else if (payment === "QiCard") {
+        walletGroup.style.display = "block";
+        walletLabel.innerText = "تحويل المبلغ إلى حساب كي كارت الخاص بالمتجر:";
+        storeAccountInfo.innerText = "xxxx-xxxx-xxxx-xxxx (رقم حساب كي كارت الخاص بك)";
+      } else {
+        walletGroup.style.display = "none";
+      }
+    }
+
+    function confirmOrder() {
+      if (cart.length === 0) {
+        alert("سلة المشتريات فارغة!");
+        return;
+      }
+      
+      const name = document.getElementById('customerName').value.trim();
+      const phone = document.getElementById('customerPhone').value.trim();
+      const city = document.getElementById('customerCity').value;
+      const address = document.getElementById('customerAddress').value.trim();
+      const paymentMethod = document.getElementById('paymentMethod').value;
+
+      if (!name || !phone || !address) {
+        alert("يرجى إكمال جميع حقول بيانات التوصيل (الاسم، الهاتف، العنوان).");
+        return;
+      }
+
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const total = subtotal + currentDeliveryFee;
+
+      let summaryText = `تأكيد تفاصيل الطلب:\n\n` +
+                        `👤 الاسم: ${name}\n` +
+                        `📱 الهاتف: ${phone}\n` +
+                        `📍 المحافظة: ${city}\n` +
+                        `🏠 العنوان: ${address}\n` +
+                        `💳 الدفع: ${paymentMethod}\n` +
+                        `🚚 التوصيل: ${currentDeliveryFee.toLocaleString()} د.ع\n` +
+                        `💰 المجموع الكلي: ${total.toLocaleString()} د.ع\n\n` +
+                        `هل أنت متأكد من إرسال الطلب؟`;
+
+      if (confirm(summaryText)) {
+        submitOrder(name, phone, city, address, paymentMethod, total);
+      }
+    }
+
+    function submitOrder(name, phone, city, address, paymentMethod, total) {
+      const orderData = {
+        name: name,
+        phone: phone,
+        city: city,
+        address: address,
+        paymentMethod: paymentMethod,
+        deliveryFee: currentDeliveryFee,
+        total: total,
+        items: cart
+      };
+
+      // Show loading indicator
+      const submitBtn = document.querySelector('.checkout-section button');
+      if (submitBtn) submitBtn.innerText = "جاري إرسال الطلب...";
+
+      fetch(scriptURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(orderData)
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.status === "success") {
+          let itemsText = cart.map(i => `${i.name} (عدد: ${i.quantity})`).join('، ');
+          let waMessage = `مرحباً، أود تأكيد طلبي الجديد:\n📦 المنتجات: ${itemsText}\n👤 الاسم: ${name}\n📱 رقم الهاتف: ${phone}\n📍 المحافظة: ${city}\n🏠 العنوان: ${address}\n💳 طريقة الدفع: ${paymentMethod}\n🚚 أجور التوصيل: ${currentDeliveryFee.toLocaleString()} د.ع\n💰 المجموع الكلي: ${total.toLocaleString()} د.ع`;
+          
+          let whatsappUrl = `https://wa.me/9647782292062?text=${encodeURIComponent(waMessage)}`;
+          
+          // Reset cart & inputs
+          cart = [];
+          renderCart();
+          document.getElementById('customerName').value = '';
+          document.getElementById('customerPhone').value = '';
+          document.getElementById('customerAddress').value = '';
+          if (submitBtn) submitBtn.innerText = "إرسال الطلب عبر واتساب وحفظ المخزون";
+
+          // 1. Try direct redirection (Works best inside Facebook In-App Browser)
+          window.location.href = whatsappUrl;
+
+        } else {
+          alert("حدث خطأ أثناء حفظ الطلب: " + response.message);
+          if (submitBtn) submitBtn.innerText = "إرسال الطلب عبر واتساب وحفظ المخزون";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("فشل الاتصال بالخادم. حاول مرة أخرى.");
+        if (submitBtn) submitBtn.innerText = "إرسال الطلب عبر واتساب وحفظ المخزون";
+      });
+    }
+    function uploadImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64String = e.target.result.split(',')[1];
+        const linkBox = document.getElementById('generatedLink');
+        linkBox.value = "جاري رفع الصورة لمعرض ImgBB...";
+
+        fetch(scriptURL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: "uploadImgur", image: base64String })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.link) {
+            linkBox.value = data.link;
+            navigator.clipboard.writeText(data.link);
+            alert("تم رفع الصورة بنجاح! وتم نسخ الرابط تلقائياً.");
+          } else {
+            linkBox.value = "خطأ من الخادم";
+            alert("خطأ: " + (data.message || "فشل الرفع"));
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          linkBox.value = "خطأ في الاتصال";
+          alert("حدث خطأ في الاتصال بالخادم.");
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+
+</body>
+</html>
