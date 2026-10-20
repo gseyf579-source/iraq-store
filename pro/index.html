@@ -92,6 +92,7 @@
             align-items: center;
             box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
             z-index: 1000;
+            cursor: pointer;
         }
         .checkout-btn {
             background-color: #27ae60;
@@ -103,7 +104,7 @@
             cursor: pointer;
         }
 
-        /* نافذة إتمام الطلب (Modal) */
+        /* نافذة عرض السلة */
         .modal {
             display: none;
             position: fixed;
@@ -121,12 +122,35 @@
             padding: 20px;
             border-radius: 12px;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .modal-content h3 { margin-top: 0; color: #2c3e50; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #333; }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item-info { flex-grow: 1; margin-left: 10px; }
+        .cart-item-title { font-weight: bold; font-size: 14px; color: #333; }
+        .cart-item-price { color: #27ae60; font-size: 13px; }
+        .remove-item-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .form-group { margin-bottom: 12px; margin-top: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #333; }
         .form-group input {
             width: 100%;
             padding: 10px;
@@ -135,9 +159,9 @@
             font-size: 14px;
             outline: none;
         }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
         .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .cancel-btn { background-color: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .cancel-btn { background-color: #95a5a6; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
         /* تنبيه الإضافة السريع */
         #toast {
@@ -202,15 +226,26 @@
     <div class="pagination-container" id="paginationContainer"></div>
 
     <!-- شريط السلة العائم -->
-    <div class="floating-cart" id="floatingCart" style="display: none;">
+    <div class="floating-cart" id="floatingCart" style="display: none;" onclick="openCartModal()">
         <div>🛒 السلة: <span id="cartCount">0</span> منتج</div>
-        <button class="checkout-btn" onclick="openCheckoutModal()">إتمام الطلب</button>
+        <div style="font-size: 14px; text-decoration: underline;">عرض السلة والطلب</div>
     </div>
 
-    <!-- نافذة إتمام الطلب وإدخال البيانات -->
-    <div class="modal" id="checkoutModal">
+    <!-- نافذة محتويات السلة وإتمام الطلب -->
+    <div class="modal" id="cartModal">
         <div class="modal-content">
-            <h3>📝 معلومات الزبون لإتمام الطلب</h3>
+            <h3>🛒 محتويات سلة التسوق</h3>
+            <div id="cartItemsContainer">
+                <!-- يتم تعبئة المنتجات هنا -->
+            </div>
+            
+            <div style="margin-top: 15px; font-weight: bold; text-align: left; color: #27ae60;">
+                الإجمالي الكلي: <span id="cartTotal">0</span> د.ع
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+            <h3>📝 معلومات الزبون</h3>
             <div class="form-group">
                 <label>اسم الزبون:</label>
                 <input type="text" id="custName" placeholder="أدخل اسمك الكريم">
@@ -223,8 +258,9 @@
                 <label>رقم الهاتف:</label>
                 <input type="tel" id="custPhone" placeholder="07xxxxxxxxx">
             </div>
+
             <div class="modal-actions">
-                <button class="cancel-btn" onclick="closeCheckoutModal()">إلغاء</button>
+                <button class="cancel-btn" onclick="closeCartModal()">إغلاق</button>
                 <button class="submit-order-btn" onclick="sendOrderWhatsApp()">تأكيد وإرسال للواتساب</button>
             </div>
         </div>
@@ -235,13 +271,11 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
-        
-        // ضع رقم هاتف التاجر هنا (مثلاً: 9647800000000+)
-        const merchantPhone = '9647700000000'; 
+        const merchantPhone = '9647700000000'; // ضع رقم هاتف التاجر هنا
 
         let allProducts = [];
         let filteredProducts = [];
-        let cart = [];
+        let cart = []; // مصفوفة لتخزين الكائنات داخل السلة
         let currentPage = 1;
         const itemsPerPage = 8;
 
@@ -296,11 +330,14 @@
             const endIndex = startIndex + itemsPerPage;
             const pageItems = filteredProducts.slice(startIndex, endIndex);
 
-            pageItems.forEach(product => {
+            pageItems.forEach((product, index) => {
                 const pName = product.name_ar || product.Name_AR || product.name_en || product.Name_EN || 'منتج';
                 const pPrice = product.price_iqd || product.Price_IQD || '0';
                 const pStock = product.stock_qty || product.Stock_Qty || '0';
                 const pImage = product.image_url || product.Image_URL || '';
+
+                // تخزين البيانات بشكل آمن ليمرر للدالة
+                const safeProduct = JSON.stringify({name: pName, price: pPrice}).replace(/"/g, '&quot;');
 
                 container.innerHTML += `
                     <div class="product-card">
@@ -310,7 +347,7 @@
                             <div class="product-price">${pPrice} د.ع</div>
                             <div class="product-stock">المتوفر: ${pStock}</div>
                         </div>
-                        <button class="add-btn" onclick="addToCart('${pName}')">إضافة للسلة</button>
+                        <button class="add-btn" onclick='addToCart(${safeProduct})'>إضافة للسلة</button>
                     </div>
                 `;
             });
@@ -318,23 +355,72 @@
             renderPagination();
         }
 
-        function addToCart(productName) {
-            cart.push(productName);
-            document.getElementById('cartCount').innerText = cart.length;
-            document.getElementById('floatingCart').style.display = 'flex';
+        function addToCart(product) {
+            // البحث عما إذا كان المنتج موجوداً مسبقاً في السلة
+            let existingItem = cart.find(item => item.name === product.name);
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ name: product.name, price: product.price, qty: 1 });
+            }
+
+            updateCartUI();
 
             const toast = document.getElementById('toast');
             toast.className = "show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
         }
 
-        function openCheckoutModal() {
-            if (cart.length === 0) return;
-            document.getElementById('checkoutModal').style.display = 'flex';
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+            renderCartModalItems();
+            if (cart.length === 0) {
+                closeCartModal();
+            }
         }
 
-        function closeCheckoutModal() {
-            document.getElementById('checkoutModal').style.display = 'none';
+        function updateCartUI() {
+            let totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartCount').innerText = totalCount;
+            if (totalCount > 0) {
+                document.getElementById('floatingCart').style.display = 'flex';
+            } else {
+                document.getElementById('floatingCart').style.display = 'none';
+            }
+        }
+
+        function openCartModal() {
+            if (cart.length === 0) return;
+            renderCartModalItems();
+            document.getElementById('cartModal').style.display = 'flex';
+        }
+
+        function closeCartModal() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        function renderCartModalItems() {
+            const container = document.getElementById('cartItemsContainer');
+            container.innerHTML = '';
+            let totalSum = 0;
+
+            cart.forEach((item, index) => {
+                let itemTotal = parseFloat(item.price.toString().replace(/,/g, '')) * item.qty || 0;
+                totalSum += itemTotal;
+
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-title">${item.name} (${item.qty} عدد)</div>
+                            <div class="cart-item-price">${item.price} د.ع</div>
+                        </div>
+                        <button class="remove-item-btn" onclick="removeFromCart(${index})">حذف</button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('cartTotal').innerText = totalSum.toLocaleString();
         }
 
         function sendOrderWhatsApp() {
@@ -352,13 +438,19 @@
             message += `📍 *العنوان:* ${address}\n`;
             message += `📱 *الهاتف:* ${phone}\n\n`;
             message += `📦 *المنتجات المطلوبة:*\n`;
+            
+            let totalSum = 0;
             cart.forEach((item, index) => {
-                message += `${index + 1}. ${item}\n`;
+                let itemTotal = parseFloat(item.price.toString().replace(/,/g, '')) * item.qty || 0;
+                totalSum += itemTotal;
+                message += `${index + 1}. ${item.name} (العدد: ${item.qty}) - ${item.price} د.ع\n`;
             });
+
+            message += `\n💰 *الإجمالي الكلي:* ${totalSum.toLocaleString()} د.ع`;
 
             const whatsappURL = `https://wa.me/${merchantPhone}?text=` + encodeURIComponent(message);
             window.open(whatsappURL, '_blank');
-            closeCheckoutModal();
+            closeCartModal();
         }
 
         function renderPagination() {
