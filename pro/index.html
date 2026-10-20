@@ -221,7 +221,6 @@
         📢 هذا المتجر عبارة عن نموذج تجريبي (Pro Edition) للنظام السحابي! هل تريد متجراً مثله؟ تواصل معنا الآن.
     </div>
 
-    <!-- شريط البحث مع أزرار المسح -->
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج..." onkeyup="handleSearch()">
         <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
@@ -233,13 +232,11 @@
 
     <div class="pagination-container" id="paginationContainer"></div>
 
-    <!-- شريط السلة العائم -->
     <div class="floating-cart" id="floatingCart" style="display: none;" onclick="openCartModal()">
         <div>🛒 السلة: <span id="cartCount">0</span> منتج</div>
         <div style="font-size: 14px; text-decoration: underline;">عرض السلة والطلب ⬅️</div>
     </div>
 
-    <!-- نافذة محتويات السلة وإتمام الطلب -->
     <div class="modal" id="cartModal">
         <div class="modal-content">
             <h3>🛒 محتويات سلة التسوق</h3>
@@ -253,20 +250,13 @@
                 <input type="text" id="custName" placeholder="أدخل اسمك الكريم">
             </div>
             <div class="form-group">
-                <label>المحافظة:</label>
+                <label>المحافظة (من جدول التوصيل):</label>
                 <select id="custGov" onchange="updateDeliveryFee()">
-                    <option value="">اختر المحافظة...</option>
-                    <option value="بغداد" data-fee="5000">بغداد (5,000 د.ع)</option>
-                    <option value="البصرة" data-fee="8000">البصرة (8,000 د.ع)</option>
-                    <option value="أربيل" data-fee="8000">أربيل (8,000 د.ع)</option>
-                    <option value="النجف الأشرف" data-fee="6000">النجف الأشرف (6,000 د.ع)</option>
-                    <option value="كربلاء المقدسة" data-fee="6000">كربلاء المقدسة (6,000 د.ع)</option>
-                    <option value="بابل" data-fee="6000">بابل (6,000 د.ع)</option>
-                    <option value="باقي المحافظات" data-fee="7000">باقي المحافظات (7,000 د.ع)</option>
+                    <option value="">جاري تحميل مناطق التوصيل...</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>العنوان التفصيلي (المنطقة / محلة / زقاق):</label>
+                <label>العنوان التفصيلي:</label>
                 <input type="text" id="custAddress" placeholder="مثال: الكرادة - قرب محطة الوقود">
             </div>
             <div class="form-group">
@@ -274,7 +264,6 @@
                 <input type="tel" id="custPhone" placeholder="07xxxxxxxxx">
             </div>
 
-            <!-- ملخص المجموع مع أجور التوصيل -->
             <div class="summary-box">
                 <div class="summary-row">
                     <span>مجموع المنتجات:</span>
@@ -305,6 +294,7 @@
         const merchantPhone = '9647700000000'; // ضع رقم هاتف التاجر هنا
 
         let allProducts = [];
+        let deliveryZones = [];
         let filteredProducts = [];
         let cart = [];
         let currentPage = 1;
@@ -312,17 +302,22 @@
         let currentSubtotal = 0;
         let currentDeliveryFee = 0;
 
-        async function fetchProducts() {
+        async function fetchStoreData() {
             try {
                 const response = await fetch(scriptURL);
                 const data = await response.json();
                 
-                if (Array.isArray(data)) {
-                    allProducts = data;
-                } else if (data.data && Array.isArray(data.data)) {
-                    allProducts = data.data;
-                } else {
-                    allProducts = [];
+                // استقبال المنتجات
+                if (Array.isArray(data.products)) {
+                    allProducts = data.products;
+                } else if (Array.isArray(data)) {
+                    allProducts = data; // دعم رجعي
+                }
+
+                // استقبال مناطق التوصيل
+                if (Array.isArray(data.delivery_zones)) {
+                    deliveryZones = data.delivery_zones;
+                    populateZonesDropdown();
                 }
 
                 filteredProducts = [...allProducts];
@@ -331,9 +326,21 @@
                 console.error('خطأ في جلب البيانات:', error);
                 document.getElementById('productsContainer').innerHTML = `
                     <div style="text-align:center; grid-column: 1/-1; padding: 20px; color: #c0392b;">
-                        <p>⚠️ تعذر تحميل المنتجات.</p>
+                        <p>⚠️ تعذر تحميل البيانات من السحابة.</p>
                     </div>`;
             }
+        }
+
+        function populateZonesDropdown() {
+            const govSelect = document.getElementById('custGov');
+            govSelect.innerHTML = '<option value="">اختر المحافظة...</option>';
+            
+            deliveryZones.forEach(zone => {
+                const zoneName = zone.governorate || zone.Governorate || zone.zone || zone.Zone || 'منطقة';
+                const zoneFee = zone.fee || zone.Fee || zone.delivery_fee || zone.Delivery_Fee || 0;
+                
+                govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName} (${parseInt(zoneFee).toLocaleString()} د.ع)</option>`;
+            });
         }
 
         function handleSearch() {
@@ -482,14 +489,12 @@
             }
 
             const btn = document.getElementById('submitOrderBtn');
-            btn.innerText = 'جاري تسجيل الطلب...';
+            btn.innerText = 'جاري تسجيل الطلب وتوزيعه بالسحابة...';
             btn.disabled = true;
 
-            const fullAddress = `${gov} - ${address}`;
-            const itemsSummary = cart.map(item => `${item.name} (${item.qty})`).join(', ');
             const totalFinal = currentSubtotal + currentDeliveryFee;
 
-            // 1. تسليط البيانات وحفظها في Google Sheets
+            // إرسال البيانات للـ Backend لتسجيلها في Orders, Order_Items, Transactions
             try {
                 await fetch(scriptURL, {
                     method: 'POST',
@@ -497,22 +502,24 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         custName: name,
-                        custAddress: fullAddress,
+                        custGov: gov,
+                        custAddress: address,
                         custPhone: phone,
-                        items: itemsSummary,
+                        cart: cart,
                         subtotal: currentSubtotal,
                         deliveryFee: currentDeliveryFee,
                         totalAmount: totalFinal
                     })
                 });
             } catch (err) {
-                console.error('تعذر تسجيل البيانات في الجدول:', err);
+                console.error('تعذر تسجيل البيانات في الجداول:', err);
             }
 
-            // 2. تجهيز ورسالة الواتساب للتاجر
-            let message = `🛒 *طلب جديد من المتجر السحابي*\n\n`;
+            // تجهيز رسالة الواتساب للتاجر
+            let message = `🛒 *طلب جديد عبر النظام السحابي Pro*\n\n`;
             message += `👤 *الاسم:* ${name}\n`;
-            message += `📍 *العنوان:* ${fullAddress}\n`;
+            message += `📍 *المحافظة:* ${gov}\n`;
+            message += `🏠 *العنوان التفصيلي:* ${address}\n`;
             message += `📱 *الهاتف:* ${phone}\n\n`;
             message += `📦 *المنتجات المطلوبة:*\n`;
             
@@ -521,8 +528,8 @@
             });
 
             message += `\n💵 *مجموع المنتجات:* ${currentSubtotal.toLocaleString()} د.ع`;
-            message += `\n🚚 *أجور التوصيل:* ${currentDeliveryFee.toLocaleString()} د.ع`;
-            message += `\n💰 *المبلغ الكلي النهائى:* ${totalFinal.toLocaleString()} د.ع`;
+            message += `\n🚚 *أجور التوصيل (من جدول Zones):* ${currentDeliveryFee.toLocaleString()} د.ع`;
+            message += `\n💰 *المبلغ الكلي النهائي:* ${totalFinal.toLocaleString()} د.ع`;
 
             btn.innerText = 'تأكيد وإرسال للواتساب';
             btn.disabled = false;
@@ -552,7 +559,7 @@
             }
         }
 
-        fetchProducts();
+        fetchStoreData();
     </script>
 </body>
 </html>
