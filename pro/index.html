@@ -9,7 +9,6 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f6f8; margin: 0; padding: 15px; }
         
-        /* شريط التنبيه التجريبي */
         .demo-banner {
             background-color: #ff9800;
             color: #fff;
@@ -21,7 +20,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* شريط البحث المتقدم */
         .search-container {
             margin-bottom: 20px;
         }
@@ -39,7 +37,6 @@
             box-shadow: 0 0 8px rgba(39, 174, 96, 0.2);
         }
 
-        /* شبكة المنتجات */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -81,7 +78,6 @@
         }
         .add-btn:active { transform: scale(0.98); }
 
-        /* نظام الصفحات (Pagination) */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -109,60 +105,65 @@
 </head>
 <body>
 
-    <!-- شريط التنبيه العلوي -->
     <div class="demo-banner">
         📢 هذا المتجر عبارة عن نموذج تجريبي (Pro Edition) للنظام السحابي! هل تريد متجراً مثله؟ تواصل معنا الآن.
     </div>
 
-    <!-- شريط البحث -->
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج..." onkeyup="handleSearch()">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج بالاسم العربي أو الإنجليزي..." onkeyup="handleSearch()">
     </div>
 
-    <!-- شبكة المنتجات -->
     <div class="products-grid" id="productsContainer">
         <p style="text-align:center; grid-column: 1/-1; padding: 20px; color: #666;">جاري تحميل المنتجات...</p>
     </div>
 
-    <!-- أزرار التنقل بين الصفحات -->
     <div class="pagination-container" id="paginationContainer"></div>
 
     <script>
-        // رابط الـ Web App المباشر الخاص بك
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
 
         let allProducts = [];
         let filteredProducts = [];
         let currentPage = 1;
-        const itemsPerPage = 8; // عدد المنتجات في كل صفحة
+        const itemsPerPage = 8;
 
-        // 1. جلب البيانات من Google Sheets
         async function fetchProducts() {
             try {
                 const response = await fetch(scriptURL);
-                allProducts = await response.json();
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    allProducts = data;
+                } else if (data.data && Array.isArray(data.data)) {
+                    allProducts = data.data;
+                } else {
+                    allProducts = [];
+                }
+
                 filteredProducts = [...allProducts];
                 renderStore();
             } catch (error) {
                 console.error('خطأ في جلب البيانات:', error);
-                document.getElementById('productsContainer').innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: red;">تعذر تحميل المنتجات، يرجى التأكد من الاتصال بالشبكة.</p>';
+                document.getElementById('productsContainer').innerHTML = `
+                    <div style="text-align:center; grid-column: 1/-1; padding: 20px; color: #c0392b;">
+                        <p>⚠️ تعذر تحميل المنتجات.</p>
+                    </div>`;
             }
         }
 
-        // 2. فلترة المنتجات عند البحث (مرونة للغة العربية والإنكليزية)
         function handleSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
             
             filteredProducts = allProducts.filter(product => {
-                const productName = (product.name || product.Name || product.الاسم || product.المنتج || '').toString().toLowerCase();
-                return productName.includes(searchTerm);
+                const nameAr = (product.name_ar || product.Name_AR || '').toString().toLowerCase();
+                const nameEn = (product.name_en || product.Name_EN || '').toString().toLowerCase();
+                return nameAr.includes(searchTerm) || nameEn.includes(searchTerm);
             });
             
-            currentPage = 1; // العودة للصفحة الأولى بعد البحث
+            currentPage = 1;
             renderStore();
         }
 
-        // 3. عرض المنتجات الخاصة بالصفحة الحالية
         function renderStore() {
             const container = document.getElementById('productsContainer');
             container.innerHTML = '';
@@ -178,18 +179,18 @@
             const pageItems = filteredProducts.slice(startIndex, endIndex);
 
             pageItems.forEach(product => {
-                const pName = product.name || product.Name || product.الاسم || 'منتج';
-                const pPrice = product.price || product.Price || product.السعر || '0';
-                const pStock = product.stock || product.Stock || product.المخزون || '0';
-                const pImage = product.image || product.Image || product.الصورة || '';
+                const pName = product.name_ar || product.Name_AR || product.name_en || product.Name_EN || 'منتج';
+                const pPrice = product.price_iqd || product.Price_IQD || '0';
+                const pStock = product.stock_qty || product.Stock_Qty || '0';
+                const pImage = product.image_url || product.Image_URL || '';
 
                 container.innerHTML += `
                     <div class="product-card">
-                        <img src="${pImage}" alt="${pName}" onerror="this.src='https://via.placeholder.com/150'">
+                        <img src="${pImage}" alt="${pName}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
                         <div>
                             <div class="product-title">${pName}</div>
                             <div class="product-price">${pPrice} د.ع</div>
-                            <div class="product-stock">المتوفر في المخزن: ${pStock}</div>
+                            <div class="product-stock">المتوفر: ${pStock}</div>
                         </div>
                         <button class="add-btn" onclick="addToCart('${pName}')">إضافة للسلة</button>
                     </div>
@@ -199,7 +200,6 @@
             renderPagination();
         }
 
-        // 4. أزرار التنقل بين الصفحات
         function renderPagination() {
             const paginationContainer = document.getElementById('paginationContainer');
             paginationContainer.innerHTML = '';
@@ -224,7 +224,6 @@
             alert('تمت إضافة ' + productName + ' إلى السلة!');
         }
 
-        // بدء الجلب المباشر عند فتح الصفحة
         fetchProducts();
     </script>
 </body>
