@@ -247,7 +247,7 @@
             <h3>📝 معلومات الزبون والتوصيل</h3>
             <div class="form-group">
                 <label>اسم الزبون:</label>
-                <input type="text" id="custName" placeholder="أدخل اسمك الكريم">
+                <input type="text" id="custName" placeholder="أدخل اسمك الكريم" oninput="updateWhatsAppLink()">
             </div>
             <div class="form-group">
                 <label>المحافظة:</label>
@@ -257,19 +257,24 @@
             </div>
             <div class="form-group">
                 <label>العنوان التفصيلي:</label>
-                <input type="text" id="custAddress" placeholder="مثال: الكرادة - قرب محطة الوقود">
+                <input type="text" id="custAddress" placeholder="مثال: الكرادة - قرب محطة الوقود" oninput="updateWhatsAppLink()">
             </div>
             <div class="form-group">
                 <label>رقم الهاتف:</label>
-                <input type="tel" id="custPhone" placeholder="07xxxxxxxxx">
+                <input type="tel" id="custPhone" placeholder="07xxxxxxxxx" oninput="updateWhatsAppLink()">
             </div>
             <div class="form-group">
                 <label>طريقة الدفع:</label>
-                <select id="paymentMethod" onchange="updateWhatsAppLink()">
+                <select id="paymentMethod" onchange="toggleWalletInput(); updateWhatsAppLink();">
                     <option value="Cash on Delivery">الدفع عند الاستلام</option>
                     <option value="ZainCash">زين كاش (ZainCash)</option>
                     <option value="QiCard">كي كارد (Qi Card)</option>
                 </select>
+            </div>
+            <!-- خانة تظهر فقط عند اختيار زين كاش أو كي كارد -->
+            <div class="form-group" id="walletGroup" style="display: none;">
+                <label id="walletLabel">رقم الحوالة أو الهاتف المحول منه:</label>
+                <input type="text" id="walletNumber" placeholder="أدخل الرقم هنا" oninput="updateWhatsAppLink()">
             </div>
 
             <div class="summary-box">
@@ -347,6 +352,23 @@
                 
                 govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName} (${parseInt(zoneFee).toLocaleString()} د.ع)</option>`;
             });
+        }
+
+        function toggleWalletInput() {
+            const payment = document.getElementById('paymentMethod').value;
+            const walletGroup = document.getElementById('walletGroup');
+            const walletLabel = document.getElementById('walletLabel');
+
+            if (payment === 'ZainCash') {
+                walletGroup.style.display = 'block';
+                walletLabel.innerText = 'رقم هاتف زين كاش المحول منه:';
+            } else if (payment === 'QiCard') {
+                walletGroup.style.display = 'block';
+                walletLabel.innerText = 'رقم بطاقة أو وصل كي كارد:';
+            } else {
+                walletGroup.style.display = 'none';
+                document.getElementById('walletNumber').value = '';
+            }
         }
 
         function handleSearch() {
@@ -489,16 +511,22 @@
         function updateWhatsAppLink(totalFinal) {
             const name = document.getElementById('custName').value.trim() || 'زبون';
             const gov = document.getElementById('custGov').value || 'غير محدد';
-            const address = document.getElementById('custAddress').value.trim() || '';
-            const phone = document.getElementById('custPhone').value.trim() || '';
+            const address = document.getElementById('custAddress').value.trim() || 'غير محدد';
+            const phone = document.getElementById('custPhone').value.trim() || 'غير محدد';
             const payment = document.getElementById('paymentMethod').value;
+            const walletNum = document.getElementById('walletNumber').value.trim();
+
+            let paymentText = payment;
+            if (walletNum) {
+                paymentText += ` (رقم الحوالة/ الهاتف: ${walletNum})`;
+            }
 
             let message = `🛒 *طلب جديد عبر النظام السحابي Pro*\n\n`;
             message += `👤 *الاسم:* ${name}\n`;
             message += `📍 *المحافظة:* ${gov}\n`;
             message += `🏠 *العنوان التفصيلي:* ${address}\n`;
-            message += `📱 *الهاتف:* ${phone}\n`;
-            message += `💳 *طريقة الدفع:* ${payment}\n\n`;
+            message += `📱 *رقم الهاتف:* ${phone}\n`;
+            message += `💳 *طريقة الدفع:* ${paymentText}\n\n`;
             message += `📦 *المنتجات المطلوبة:*\n`;
             
             cart.forEach((item, index) => {
@@ -519,6 +547,7 @@
             const address = document.getElementById('custAddress').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
             const payment = document.getElementById('paymentMethod').value;
+            const walletNum = document.getElementById('walletNumber').value.trim();
 
             if (!name || !gov || !address || !phone) {
                 alert('يرجى ملء كافة معلومات الاسم والمحافظة والعنوان ورقم الهاتف!');
@@ -539,6 +568,7 @@
                         custAddress: address,
                         custPhone: phone,
                         paymentMethod: payment,
+                        walletNumber: walletNum,
                         cart: cart,
                         subtotal: currentSubtotal,
                         deliveryFee: currentDeliveryFee,
