@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f8; margin: 0; padding: 15px; padding-bottom: 90px; } /* مساحة السلة العائمة بالأسفل */
+        body { background-color: #f4f6f8; margin: 0; padding: 15px; padding-bottom: 90px; }
         
         .demo-banner {
             background-color: #ff9800;
@@ -78,7 +78,7 @@
         }
         .add-btn:active { transform: scale(0.98); }
 
-        /* شريط السلة العائم في الأسفل */
+        /* شريط السلة العائم */
         .floating-cart {
             position: fixed;
             bottom: 0;
@@ -103,7 +103,43 @@
             cursor: pointer;
         }
 
-        /* تنبيه الإضافة السريع (Toast) */
+        /* نافذة إتمام الطلب (Modal) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 { margin-top: 0; color: #2c3e50; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #333; }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .cancel-btn { background-color: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        /* تنبيه الإضافة السريع */
         #toast {
             visibility: hidden;
             min-width: 200px;
@@ -168,7 +204,30 @@
     <!-- شريط السلة العائم -->
     <div class="floating-cart" id="floatingCart" style="display: none;">
         <div>🛒 السلة: <span id="cartCount">0</span> منتج</div>
-        <button class="checkout-btn" onclick="checkout()">إتمام الطلب</button>
+        <button class="checkout-btn" onclick="openCheckoutModal()">إتمام الطلب</button>
+    </div>
+
+    <!-- نافذة إتمام الطلب وإدخال البيانات -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <h3>📝 معلومات الزبون لإتمام الطلب</h3>
+            <div class="form-group">
+                <label>اسم الزبون:</label>
+                <input type="text" id="custName" placeholder="أدخل اسمك الكريم">
+            </div>
+            <div class="form-group">
+                <label>المحافظة / المنطقة:</label>
+                <input type="text" id="custAddress" placeholder="مثال: بغداد - الكرادة">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف:</label>
+                <input type="tel" id="custPhone" placeholder="07xxxxxxxxx">
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeCheckoutModal()">إلغاء</button>
+                <button class="submit-order-btn" onclick="sendOrderWhatsApp()">تأكيد وإرسال للواتساب</button>
+            </div>
+        </div>
     </div>
 
     <!-- تنبيه الإضافة السريع -->
@@ -176,6 +235,9 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
+        
+        // ضع رقم هاتف التاجر هنا (مثلاً: 9647800000000+)
+        const merchantPhone = '9647700000000'; 
 
         let allProducts = [];
         let filteredProducts = [];
@@ -261,17 +323,42 @@
             document.getElementById('cartCount').innerText = cart.length;
             document.getElementById('floatingCart').style.display = 'flex';
 
-            // إظهار تنبيه خفيف غير معطل للحركة
             const toast = document.getElementById('toast');
             toast.className = "show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
         }
 
-        function checkout() {
+        function openCheckoutModal() {
             if (cart.length === 0) return;
-            const message = `مرحباً، أريد إتمام الطلب للمنتجات التالية:\n- ` + cart.join('\n- ');
-            const whatsappURL = `https://wa.me/?text=` + encodeURIComponent(message);
+            document.getElementById('checkoutModal').style.display = 'flex';
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+
+        function sendOrderWhatsApp() {
+            const name = document.getElementById('custName').value.trim();
+            const address = document.getElementById('custAddress').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+
+            if (!name || !address || !phone) {
+                alert('يرجى ملء جميع حقول الاسم والعنوان والهاتف!');
+                return;
+            }
+
+            let message = `🛒 *طلب جديد من المتجر السحابي*\n\n`;
+            message += `👤 *الاسم:* ${name}\n`;
+            message += `📍 *العنوان:* ${address}\n`;
+            message += `📱 *الهاتف:* ${phone}\n\n`;
+            message += `📦 *المنتجات المطلوبة:*\n`;
+            cart.forEach((item, index) => {
+                message += `${index + 1}. ${item}\n`;
+            });
+
+            const whatsappURL = `https://wa.me/${merchantPhone}?text=` + encodeURIComponent(message);
             window.open(whatsappURL, '_blank');
+            closeCheckoutModal();
         }
 
         function renderPagination() {
