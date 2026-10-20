@@ -22,10 +22,11 @@
 
         .search-container {
             margin-bottom: 20px;
+            position: relative;
         }
         .search-input {
             width: 100%;
-            padding: 14px;
+            padding: 14px 40px 14px 14px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
@@ -35,6 +36,18 @@
         .search-input:focus {
             border-color: #27ae60;
             box-shadow: 0 0 8px rgba(39, 174, 96, 0.2);
+        }
+        .clear-search-btn {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            display: none;
         }
 
         .products-grid {
@@ -78,7 +91,6 @@
         }
         .add-btn:active { transform: scale(0.98); }
 
-        /* شريط السلة العائم */
         .floating-cart {
             position: fixed;
             bottom: 0;
@@ -94,17 +106,7 @@
             z-index: 1000;
             cursor: pointer;
         }
-        .checkout-btn {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
 
-        /* نافذة عرض السلة */
         .modal {
             display: none;
             position: fixed;
@@ -124,7 +126,7 @@
             width: 90%;
             max-width: 450px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
         }
         .modal-content h3 { margin-top: 0; color: #2c3e50; }
@@ -149,9 +151,9 @@
             font-size: 12px;
         }
 
-        .form-group { margin-bottom: 12px; margin-top: 15px; }
+        .form-group { margin-bottom: 12px; margin-top: 12px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #333; }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -163,7 +165,16 @@
         .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .cancel-btn { background-color: #95a5a6; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        /* تنبيه الإضافة السريع */
+        .summary-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+
         #toast {
             visibility: hidden;
             min-width: 200px;
@@ -192,7 +203,6 @@
             margin-top: 25px;
             flex-wrap: wrap;
         }
-
         .page-btn {
             background: #fff;
             border: 1px solid #27ae60;
@@ -202,11 +212,7 @@
             font-weight: bold;
             cursor: pointer;
         }
-
-        .page-btn.active {
-            background: #27ae60;
-            color: #fff;
-        }
+        .page-btn.active { background: #27ae60; color: #fff; }
     </style>
 </head>
 <body>
@@ -215,8 +221,10 @@
         📢 هذا المتجر عبارة عن نموذج تجريبي (Pro Edition) للنظام السحابي! هل تريد متجراً مثله؟ تواصل معنا الآن.
     </div>
 
+    <!-- شريط البحث مع أزرار المسح -->
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج..." onkeyup="handleSearch()">
+        <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
     </div>
 
     <div class="products-grid" id="productsContainer">
@@ -228,45 +236,68 @@
     <!-- شريط السلة العائم -->
     <div class="floating-cart" id="floatingCart" style="display: none;" onclick="openCartModal()">
         <div>🛒 السلة: <span id="cartCount">0</span> منتج</div>
-        <div style="font-size: 14px; text-decoration: underline;">عرض السلة والطلب</div>
+        <div style="font-size: 14px; text-decoration: underline;">عرض السلة والطلب ⬅️</div>
     </div>
 
     <!-- نافذة محتويات السلة وإتمام الطلب -->
     <div class="modal" id="cartModal">
         <div class="modal-content">
             <h3>🛒 محتويات سلة التسوق</h3>
-            <div id="cartItemsContainer">
-                <!-- يتم تعبئة المنتجات هنا -->
-            </div>
-            
-            <div style="margin-top: 15px; font-weight: bold; text-align: left; color: #27ae60;">
-                الإجمالي الكلي: <span id="cartTotal">0</span> د.ع
-            </div>
+            <div id="cartItemsContainer"></div>
 
             <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
 
-            <h3>📝 معلومات الزبون</h3>
+            <h3>📝 معلومات الزبون والتوصيل</h3>
             <div class="form-group">
                 <label>اسم الزبون:</label>
                 <input type="text" id="custName" placeholder="أدخل اسمك الكريم">
             </div>
             <div class="form-group">
-                <label>المحافظة / المنطقة:</label>
-                <input type="text" id="custAddress" placeholder="مثال: بغداد - الكرادة">
+                <label>المحافظة:</label>
+                <select id="custGov" onchange="updateDeliveryFee()">
+                    <option value="">اختر المحافظة...</option>
+                    <option value="بغداد" data-fee="5000">بغداد (5,000 د.ع)</option>
+                    <option value="البصرة" data-fee="8000">البصرة (8,000 د.ع)</option>
+                    <option value="أربيل" data-fee="8000">أربيل (8,000 د.ع)</option>
+                    <option value="النجف الأشرف" data-fee="6000">النجف الأشرف (6,000 د.ع)</option>
+                    <option value="كربلاء المقدسة" data-fee="6000">كربلاء المقدسة (6,000 د.ع)</option>
+                    <option value="بابل" data-fee="6000">بابل (6,000 د.ع)</option>
+                    <option value="باقي المحافظات" data-fee="7000">باقي المحافظات (7,000 د.ع)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>العنوان التفصيلي (المنطقة / محلة / زقاق):</label>
+                <input type="text" id="custAddress" placeholder="مثال: الكرادة - قرب محطة الوقود">
             </div>
             <div class="form-group">
                 <label>رقم الهاتف:</label>
                 <input type="tel" id="custPhone" placeholder="07xxxxxxxxx">
             </div>
 
+            <!-- ملخص المجموع مع أجور التوصيل -->
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>مجموع المنتجات:</span>
+                    <span><strong id="subtotalAmount">0</strong> د.ع</span>
+                </div>
+                <div class="summary-row">
+                    <span>أجور التوصيل:</span>
+                    <span><strong id="deliveryFeeAmount">0</strong> د.ع</span>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #ddd; margin: 5px 0;">
+                <div class="summary-row" style="font-size: 16px; color: #27ae60; font-weight: bold;">
+                    <span>المبلغ الكلي:</span>
+                    <span><strong id="totalAmount">0</strong> د.ع</span>
+                </div>
+            </div>
+
             <div class="modal-actions">
                 <button class="cancel-btn" onclick="closeCartModal()">إغلاق</button>
-                <button class="submit-order-btn" onclick="sendOrderWhatsApp()">تأكيد وإرسال للواتساب</button>
+                <button class="submit-order-btn" id="submitOrderBtn" onclick="sendOrderWhatsApp()">تأكيد وإرسال للواتساب</button>
             </div>
         </div>
     </div>
 
-    <!-- تنبيه الإضافة السريع -->
     <div id="toast">تمت إضافة المنتج إلى السلة</div>
 
     <script>
@@ -275,9 +306,11 @@
 
         let allProducts = [];
         let filteredProducts = [];
-        let cart = []; // مصفوفة لتخزين الكائنات داخل السلة
+        let cart = [];
         let currentPage = 1;
         const itemsPerPage = 8;
+        let currentSubtotal = 0;
+        let currentDeliveryFee = 0;
 
         async function fetchProducts() {
             try {
@@ -304,8 +337,12 @@
         }
 
         function handleSearch() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const searchTerm = searchInput.value.toLowerCase().trim();
             
+            clearBtn.style.display = searchTerm.length > 0 ? 'block' : 'none';
+
             filteredProducts = allProducts.filter(product => {
                 const nameAr = (product.name_ar || product.Name_AR || '').toString().toLowerCase();
                 const nameEn = (product.name_en || product.Name_EN || '').toString().toLowerCase();
@@ -314,6 +351,12 @@
             
             currentPage = 1;
             renderStore();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            handleSearch();
         }
 
         function renderStore() {
@@ -330,13 +373,12 @@
             const endIndex = startIndex + itemsPerPage;
             const pageItems = filteredProducts.slice(startIndex, endIndex);
 
-            pageItems.forEach((product, index) => {
+            pageItems.forEach(product => {
                 const pName = product.name_ar || product.Name_AR || product.name_en || product.Name_EN || 'منتج';
                 const pPrice = product.price_iqd || product.Price_IQD || '0';
                 const pStock = product.stock_qty || product.Stock_Qty || '0';
                 const pImage = product.image_url || product.Image_URL || '';
 
-                // تخزين البيانات بشكل آمن ليمرر للدالة
                 const safeProduct = JSON.stringify({name: pName, price: pPrice}).replace(/"/g, '&quot;');
 
                 container.innerHTML += `
@@ -356,7 +398,6 @@
         }
 
         function addToCart(product) {
-            // البحث عما إذا كان المنتج موجوداً مسبقاً في السلة
             let existingItem = cart.find(item => item.name === product.name);
             if (existingItem) {
                 existingItem.qty += 1;
@@ -383,11 +424,7 @@
         function updateCartUI() {
             let totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
             document.getElementById('cartCount').innerText = totalCount;
-            if (totalCount > 0) {
-                document.getElementById('floatingCart').style.display = 'flex';
-            } else {
-                document.getElementById('floatingCart').style.display = 'none';
-            }
+            document.getElementById('floatingCart').style.display = totalCount > 0 ? 'flex' : 'none';
         }
 
         function openCartModal() {
@@ -403,11 +440,11 @@
         function renderCartModalItems() {
             const container = document.getElementById('cartItemsContainer');
             container.innerHTML = '';
-            let totalSum = 0;
+            currentSubtotal = 0;
 
             cart.forEach((item, index) => {
                 let itemTotal = parseFloat(item.price.toString().replace(/,/g, '')) * item.qty || 0;
-                totalSum += itemTotal;
+                currentSubtotal += itemTotal;
 
                 container.innerHTML += `
                     <div class="cart-item">
@@ -420,33 +457,75 @@
                 `;
             });
 
-            document.getElementById('cartTotal').innerText = totalSum.toLocaleString();
+            document.getElementById('subtotalAmount').innerText = currentSubtotal.toLocaleString();
+            updateDeliveryFee();
         }
 
-        function sendOrderWhatsApp() {
+        function updateDeliveryFee() {
+            const govSelect = document.getElementById('custGov');
+            const selectedOption = govSelect.options[govSelect.selectedIndex];
+            currentDeliveryFee = selectedOption && selectedOption.dataset.fee ? parseFloat(selectedOption.dataset.fee) : 0;
+            
+            document.getElementById('deliveryFeeAmount').innerText = currentDeliveryFee.toLocaleString();
+            document.getElementById('totalAmount').innerText = (currentSubtotal + currentDeliveryFee).toLocaleString();
+        }
+
+        async function sendOrderWhatsApp() {
             const name = document.getElementById('custName').value.trim();
+            const gov = document.getElementById('custGov').value;
             const address = document.getElementById('custAddress').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
 
-            if (!name || !address || !phone) {
-                alert('يرجى ملء جميع حقول الاسم والعنوان والهاتف!');
+            if (!name || !gov || !address || !phone) {
+                alert('يرجى ملء كافة معلومات الاسم والمحافظة والعنوان ورقم الهاتف!');
                 return;
             }
 
+            const btn = document.getElementById('submitOrderBtn');
+            btn.innerText = 'جاري تسجيل الطلب...';
+            btn.disabled = true;
+
+            const fullAddress = `${gov} - ${address}`;
+            const itemsSummary = cart.map(item => `${item.name} (${item.qty})`).join(', ');
+            const totalFinal = currentSubtotal + currentDeliveryFee;
+
+            // 1. تسليط البيانات وحفظها في Google Sheets
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        custName: name,
+                        custAddress: fullAddress,
+                        custPhone: phone,
+                        items: itemsSummary,
+                        subtotal: currentSubtotal,
+                        deliveryFee: currentDeliveryFee,
+                        totalAmount: totalFinal
+                    })
+                });
+            } catch (err) {
+                console.error('تعذر تسجيل البيانات في الجدول:', err);
+            }
+
+            // 2. تجهيز ورسالة الواتساب للتاجر
             let message = `🛒 *طلب جديد من المتجر السحابي*\n\n`;
             message += `👤 *الاسم:* ${name}\n`;
-            message += `📍 *العنوان:* ${address}\n`;
+            message += `📍 *العنوان:* ${fullAddress}\n`;
             message += `📱 *الهاتف:* ${phone}\n\n`;
             message += `📦 *المنتجات المطلوبة:*\n`;
             
-            let totalSum = 0;
             cart.forEach((item, index) => {
-                let itemTotal = parseFloat(item.price.toString().replace(/,/g, '')) * item.qty || 0;
-                totalSum += itemTotal;
                 message += `${index + 1}. ${item.name} (العدد: ${item.qty}) - ${item.price} د.ع\n`;
             });
 
-            message += `\n💰 *الإجمالي الكلي:* ${totalSum.toLocaleString()} د.ع`;
+            message += `\n💵 *مجموع المنتجات:* ${currentSubtotal.toLocaleString()} د.ع`;
+            message += `\n🚚 *أجور التوصيل:* ${currentDeliveryFee.toLocaleString()} د.ع`;
+            message += `\n💰 *المبلغ الكلي النهائى:* ${totalFinal.toLocaleString()} د.ع`;
+
+            btn.innerText = 'تأكيد وإرسال للواتساب';
+            btn.disabled = false;
 
             const whatsappURL = `https://wa.me/${merchantPhone}?text=` + encodeURIComponent(message);
             window.open(whatsappURL, '_blank');
