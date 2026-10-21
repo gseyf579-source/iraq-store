@@ -21,7 +21,7 @@
         }
 
         .search-container {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
         }
         .search-input {
@@ -50,11 +50,40 @@
             display: none;
         }
 
+        /* أزرار الفئات والأقسام */
+        .categories-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            scrollbar-width: none; /* إخفاء شريط التمرير */
+        }
+        .categories-container::-webkit-scrollbar { display: none; }
+
+        .category-btn {
+            background: #fff;
+            border: 1px solid #27ae60;
+            color: #27ae60;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+        .category-btn.active, .category-btn:hover {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        /* شبكة المنتجات المحاذاة بدقة */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px;
-            align-items: stretch;
+            align-content: start;
         }
 
         .product-card {
@@ -67,14 +96,27 @@
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
+            min-height: 290px;
+        }
+
+        .product-img-wrapper {
+            width: 100%;
+            height: 130px;
+            background-color: #f1f2f6;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            flex-shrink: 0;
         }
 
         .product-card img {
             width: 100%;
-            height: 140px;
+            height: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            background-color: #f0f0f0;
+            display: block;
         }
 
         .product-info {
@@ -84,20 +126,33 @@
             justify-content: space-between;
         }
 
-        .product-title { font-size: 15px; font-weight: bold; margin: 10px 0 5px; color: #333; min-height: 40px; }
-        .product-price { color: #27ae60; font-weight: bold; margin-bottom: 3px; }
-        .product-stock { color: #7f8c8d; font-size: 12px; margin-bottom: 10px; }
+        .product-title { 
+            font-size: 14px; 
+            font-weight: bold; 
+            margin: 5px 0; 
+            color: #333; 
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 38px;
+            line-height: 1.35;
+        }
+
+        .product-price { color: #27ae60; font-weight: bold; font-size: 14px; margin-bottom: 3px; }
+        .product-stock { color: #7f8c8d; font-size: 11px; margin-bottom: 8px; }
 
         .add-btn {
             background-color: #27ae60;
             color: white;
             border: none;
-            padding: 10px;
+            padding: 9px;
             border-radius: 8px;
             width: 100%;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
+            font-size: 13px;
         }
         .add-btn:active { transform: scale(0.98); }
         .add-btn:disabled {
@@ -176,7 +231,6 @@
             outline: none;
         }
 
-        /* صندوق تعليمات تحويل الأموال المطابق للصورة تماماً */
         .wallet-info-box {
             background-color: #e8f8f5;
             border: 1px solid #a3e4d7;
@@ -190,7 +244,6 @@
             text-align: center;
         }
 
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
         .submit-order-btn { 
             background-color: #27ae60; 
             color: white; 
@@ -264,8 +317,13 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج..." onkeyup="handleSearch()">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج..." onkeyup="filterProducts()">
         <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
+    </div>
+
+    <!-- شريط الأقسام والفئات -->
+    <div class="categories-container" id="categoriesContainer">
+        <button class="category-btn active" onclick="selectCategory('all', this)">الكل</button>
     </div>
 
     <div class="products-grid" id="productsContainer">
@@ -335,7 +393,6 @@
                 </select>
             </div>
 
-            <!-- صندوق تعليمات التحويل الفيروزي المباشر المطابق للصورة -->
             <div id="walletInfoBox" class="wallet-info-box" style="display: none;">
                 <div id="walletTitle" style="font-weight: bold; margin-bottom: 5px;"></div>
                 <div id="walletDetails"></div>
@@ -363,9 +420,10 @@
         let allProducts = [];
         let deliveryZones = [];
         let filteredProducts = [];
+        let selectedCategory = 'all';
         let cart = [];
         let currentPage = 1;
-        const itemsPerPage = 8;
+        const itemsPerPage = 12; // 12 منتج بكل صفحة
         let currentSubtotal = 0;
         let currentDeliveryFee = 0;
 
@@ -385,8 +443,8 @@
                     populateZonesDropdown();
                 }
 
-                filteredProducts = [...allProducts];
-                renderStore();
+                renderCategories();
+                filterProducts();
             } catch (error) {
                 console.error('خطأ في جلب البيانات:', error);
                 document.getElementById('productsContainer').innerHTML = `
@@ -396,38 +454,26 @@
             }
         }
 
-        function populateZonesDropdown() {
-            const govSelect = document.getElementById('custGov');
-            govSelect.innerHTML = '<option value="">اختر المحافظة...</option>';
+        function renderCategories() {
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            // استخراج الفئات الفريدة من جدول المنتجات
+            const categories = [...new Set(allProducts.map(p => p.category || p.Category).filter(Boolean))];
             
-            deliveryZones.forEach(zone => {
-                const zoneName = zone.governorate || zone.Governorate || zone.zone || zone.Zone || 'منطقة';
-                const zoneFee = zone.delivery_fee_iqd || zone.Delivery_Fee_IQD || zone.fee || zone.Fee || 0;
-                
-                govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName}</option>`;
+            categoriesContainer.innerHTML = '<button class="category-btn active" onclick="selectCategory(\'all\', this)">الكل</button>';
+            categories.forEach(cat => {
+                categoriesContainer.innerHTML += `<button class="category-btn" onclick="selectCategory('${cat}', this)">${cat}</button>`;
             });
         }
 
-        function toggleWalletInput() {
-            const payment = document.getElementById('paymentMethod').value;
-            const walletInfoBox = document.getElementById('walletInfoBox');
-            const walletTitle = document.getElementById('walletTitle');
-            const walletDetails = document.getElementById('walletDetails');
-
-            if (payment.includes('ZainCash')) {
-                walletInfoBox.style.display = 'block';
-                walletTitle.innerText = 'تحويل المبلغ إلى محفظة زين كاش الخاصة بالمتجر:';
-                walletDetails.innerText = `${merchantZainCash} (رقم محفظة زين كاش الخاص بك)`;
-            } else if (payment.includes('QiCard')) {
-                walletInfoBox.style.display = 'block';
-                walletTitle.innerText = 'تحويل المبلغ إلى حساب كي كارت الخاص بالمتجر:';
-                walletDetails.innerText = `${merchantQiCard} (رقم حساب كي كارت الخاص بك)`;
-            } else {
-                walletInfoBox.style.display = 'none';
-            }
+        function selectCategory(cat, element) {
+            selectedCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            currentPage = 1;
+            filterProducts();
         }
 
-        function handleSearch() {
+        function filterProducts() {
             const searchInput = document.getElementById('searchInput');
             const clearBtn = document.getElementById('clearSearchBtn');
             const searchTerm = searchInput.value.toLowerCase().trim();
@@ -437,7 +483,12 @@
             filteredProducts = allProducts.filter(product => {
                 const nameAr = (product.name_ar || product.Name_AR || '').toString().toLowerCase();
                 const nameEn = (product.name_en || product.Name_EN || '').toString().toLowerCase();
-                return nameAr.includes(searchTerm) || nameEn.includes(searchTerm);
+                const cat = (product.category || product.Category || '').toString();
+
+                const matchesSearch = nameAr.includes(searchTerm) || nameEn.includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' || cat === selectedCategory;
+
+                return matchesSearch && matchesCategory;
             });
             
             currentPage = 1;
@@ -447,7 +498,7 @@
         function clearSearch() {
             document.getElementById('searchInput').value = '';
             document.getElementById('clearSearchBtn').style.display = 'none';
-            handleSearch();
+            filterProducts();
         }
 
         function renderStore() {
@@ -455,7 +506,7 @@
             container.innerHTML = '';
 
             if (filteredProducts.length === 0) {
-                container.innerHTML = '<p style="text-align:center; grid-column: 1/-1; padding: 20px; color: #666;">لا توجد منتجات مطابقة للبحث.</p>';
+                container.innerHTML = '<p style="text-align:center; grid-column: 1/-1; padding: 20px; color: #666;">لا توجد منتجات مطابقة للقسم أو البحث.</p>';
                 document.getElementById('paginationContainer').innerHTML = '';
                 return;
             }
@@ -478,12 +529,14 @@
 
                 container.innerHTML += `
                     <div class="product-card">
-                        <img src="${pImage}" alt="${pName}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                        <div class="product-img-wrapper">
+                            <img src="${pImage}" alt="${pName}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                        </div>
                         <div class="product-info">
                             <div>
                                 <div class="product-title">${pName}</div>
                                 <div class="product-price">${pPrice} د.ع</div>
-                                <div class="product-stock">المتوفر في المخزن: ${pStock}</div>
+                                <div class="product-stock">المتوفر: ${pStock}</div>
                             </div>
                             <button class="add-btn" ${btnDisabled} onclick='addToCart(${safeProduct})'>${btnText}</button>
                         </div>
@@ -492,6 +545,37 @@
             });
 
             renderPagination();
+        }
+
+        function populateZonesDropdown() {
+            const govSelect = document.getElementById('custGov');
+            govSelect.innerHTML = '<option value="">اختر المحافظة...</option>';
+            
+            deliveryZones.forEach(zone => {
+                const zoneName = zone.governorate || zone.Governorate || zone.zone || zone.Zone || 'منطقة';
+                const zoneFee = zone.delivery_fee_iqd || zone.Delivery_Fee_IQD || zone.fee || zone.Fee || 0;
+                
+                govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName}</option>`;
+            });
+        }
+
+        function toggleWalletInput() {
+            const payment = document.getElementById('paymentMethod').value;
+            const walletInfoBox = document.getElementById('walletInfoBox');
+            const walletTitle = document.getElementById('walletTitle');
+            const walletDetails = document.getElementById('walletDetails');
+
+            if (payment.includes('ZainCash')) {
+                walletInfoBox.style.display = 'block';
+                walletTitle.innerText = 'تحويل المبلغ إلى محفظة زين كاش الخاصة بالمتاجر:';
+                walletDetails.innerText = `${merchantZainCash} (رقم محفظة زين كاش الخاص بك)`;
+            } else if (payment.includes('QiCard')) {
+                walletInfoBox.style.display = 'block';
+                walletTitle.innerText = 'تحويل المبلغ إلى حساب كي كارت الخاص بالمتجر:';
+                walletDetails.innerText = `${merchantQiCard} (رقم حساب كي كارت الخاص بك)`;
+            } else {
+                walletInfoBox.style.display = 'none';
+            }
         }
 
         function addToCart(product) {
@@ -619,7 +703,6 @@
 
             const totalFinal = currentSubtotal + currentDeliveryFee;
 
-            // 1. تسليط البيانات وحفظ المخزون في السحابة
             try {
                 fetch(scriptURL, {
                     method: 'POST',
@@ -641,7 +724,6 @@
                 console.error('تعذر تسجيل البيانات في الجداول:', err);
             }
 
-            // 2. تفريغ النموذج والسلة بالكامل لتصبح الصفحة نظيفة
             setTimeout(() => {
                 document.getElementById('custName').value = '';
                 document.getElementById('custPhone').value = '';
@@ -653,7 +735,7 @@
                 cart = [];
                 updateCartUI();
                 closeCartModal();
-                fetchStoreData(); // إعادة تحديث المنتجات مع المخزون المخصوم
+                fetchStoreData();
             }, 500);
         }
 
