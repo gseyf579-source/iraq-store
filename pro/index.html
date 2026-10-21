@@ -288,6 +288,7 @@
         @keyframes fadein { from {bottom: 50px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 50px; opacity: 0;} }
 
+        /* تنسيق ومحاذاة مربعات الصفحات لتصبح مربعات متناسقة تماماً */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -300,12 +301,21 @@
             background: #fff;
             border: 1px solid #27ae60;
             color: #27ae60;
-            padding: 8px 14px;
-            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 15px;
+            transition: 0.2s;
         }
-        .page-btn.active { background: #27ae60; color: #fff; }
+        .page-btn.active { 
+            background: #27ae60; 
+            color: #fff; 
+        }
     </style>
 </head>
 <body>
@@ -664,11 +674,12 @@
             updateWhatsAppLink(totalFinal);
         }
 
-        function updateWhatsAppLink(totalFinal) {
-            const name = document.getElementById('custName').value.trim() || '';
-            const phone = document.getElementById('custPhone').value.trim() || '';
-            const gov = document.getElementById('custGov').value || '';
-            const address = document.getElementById('custAddress').value.trim() || '';
+        // دالة تحديث رابط الواتساب لضمان إدراج العنوان التفصيلي ورقم الهاتف دائماً
+        function updateWhatsAppLink(totalFinal = (currentSubtotal + currentDeliveryFee)) {
+            const name = document.getElementById('custName').value.trim() || 'غير محدد';
+            const phone = document.getElementById('custPhone').value.trim() || 'غير محدد';
+            const gov = document.getElementById('custGov').value || 'غير مححدد';
+            const address = document.getElementById('custAddress').value.trim() || 'غير محدد';
             const payment = document.getElementById('paymentMethod').value;
 
             let message = `🛒 *طلب جديد عبر النظام السحابي Pro*\n\n`;
@@ -761,6 +772,12 @@
                 paginationContainer.appendChild(button);
             }
         }
+
+        // ربط أحداث الإدخال لتحديث رسالة الواتساب فوراً عند الكتابة
+        ['custName', 'custPhone', 'custGov', 'custAddress'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => updateWhatsAppLink());
+            document.getElementById(id).addEventListener('change', () => updateWhatsAppLink());
+        });
 
         fetchStoreData();
     </script>
