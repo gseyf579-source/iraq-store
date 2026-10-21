@@ -166,33 +166,52 @@
         }
 
         .form-group { margin-bottom: 12px; margin-top: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #333; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #2c3e50; }
         .form-group input, .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
             font-size: 14px;
             outline: none;
         }
+
+        /* صندوق تعليمات تحويل الأموال المطابق للصورة تماماً */
         .wallet-info-box {
             background-color: #e8f8f5;
             border: 1px solid #a3e4d7;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
             color: #117a65;
-            margin-bottom: 8px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            text-align: center;
         }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
-        .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; text-align: center;}
-        .cancel-btn { background-color: #95a5a6; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .submit-order-btn { 
+            background-color: #27ae60; 
+            color: white; 
+            border: none; 
+            padding: 14px 20px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-decoration: none; 
+            display: block; 
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+        }
+        .cancel-btn { background-color: #95a5a6; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         .summary-box {
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
             border-radius: 8px;
-            padding: 10px;
+            padding: 12px;
             margin-top: 15px;
             font-size: 14px;
         }
@@ -262,47 +281,8 @@
 
     <div class="modal" id="cartModal">
         <div class="modal-content">
-            <h3>🛒 محتويات سلة التسوق</h3>
+            <h3>🛒 سلة المشتريات</h3>
             <div id="cartItemsContainer"></div>
-
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-
-            <h3>📝 معلومات الزبون والتوصيل</h3>
-            <div class="form-group">
-                <label>اسم الزبون:</label>
-                <input type="text" id="custName" placeholder="أدخل اسمك الكريم" oninput="updateWhatsAppLink()">
-            </div>
-            <div class="form-group">
-                <label>المحافظة:</label>
-                <select id="custGov" onchange="updateDeliveryFee()">
-                    <option value="">اختر المحافظة...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>العنوان التفصيلي:</label>
-                <input type="text" id="custAddress" placeholder="مثال: الكرادة - قرب محطة الوقود" oninput="updateWhatsAppLink()">
-            </div>
-            <div class="form-group">
-                <label>رقم الهاتف:</label>
-                <input type="tel" id="custPhone" placeholder="07xxxxxxxxx" oninput="updateWhatsAppLink()">
-            </div>
-            <div class="form-group">
-                <label>طريقة الدفع:</label>
-                <select id="paymentMethod" onchange="toggleWalletInput(); updateWhatsAppLink();">
-                    <option value="Cash on Delivery">الدفع عند الاستلام</option>
-                    <option value="ZainCash">زين كاش (ZainCash)</option>
-                    <option value="QiCard">كي كارد (Qi Card)</option>
-                </select>
-            </div>
-
-            <div id="walletInfoBox" class="wallet-info-box" style="display: none;">
-                <span id="walletInstructions">قم بالتحويل على الرقم التالي لصاحب المتجر ثم أدخل رقم الحوالة أدناه:</span>
-            </div>
-
-            <div class="form-group" id="walletGroup" style="display: none;">
-                <label id="walletLabel">رقم الحوالة أو الهاتف المحول منه:</label>
-                <input type="text" id="walletNumber" placeholder="أدخل الرقم هنا" oninput="updateWhatsAppLink()">
-            </div>
 
             <div class="summary-box">
                 <div class="summary-row">
@@ -314,15 +294,59 @@
                     <span><strong id="deliveryFeeAmount">0</strong> د.ع</span>
                 </div>
                 <hr style="border: 0; border-top: 1px solid #ddd; margin: 5px 0;">
-                <div class="summary-row" style="font-size: 16px; color: #27ae60; font-weight: bold;">
-                    <span>المبلغ الكلي:</span>
+                <div class="summary-row" style="font-size: 16px; color: #c0392b; font-weight: bold;">
+                    <span>المجموع الكلي:</span>
                     <span><strong id="totalAmount">0</strong> د.ع</span>
                 </div>
             </div>
 
-            <div class="modal-actions">
-                <button class="cancel-btn" onclick="closeCartModal()">إغلاق</button>
-                <a id="whatsappOrderBtn" href="#" target="_blank" class="submit-order-btn" onclick="submitOrder()">تأكيد وإرسال للواتساب</a>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <h3 style="text-align: center;">إتمام الطلب</h3>
+            
+            <div class="form-group">
+                <label>الاسم الكامل:</label>
+                <input type="text" id="custName" placeholder="أدخل اسمك الكريم" oninput="updateWhatsAppLink()">
+            </div>
+            
+            <div class="form-group">
+                <label>رقم الهاتف:</label>
+                <input type="tel" id="custPhone" placeholder="07701234567" oninput="updateWhatsAppLink()">
+            </div>
+
+            <div class="form-group">
+                <label>المحافظة:</label>
+                <select id="custGov" onchange="updateDeliveryFee()">
+                    <option value="">جاري تحميل المحافظات...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>العنوان التفصيلي:</label>
+                <input type="text" id="custAddress" placeholder="المنطقة، الشارع، أقرب نقطة دالة" oninput="updateWhatsAppLink()">
+            </div>
+
+            <div class="form-group">
+                <label>طريقة الدفع:</label>
+                <select id="paymentMethod" onchange="toggleWalletInput(); updateWhatsAppLink();">
+                    <option value="الدفع عند الاستلام">الدفع عند الاستلام</option>
+                    <option value="زين كاش (ZainCash)">زين كاش (ZainCash)</option>
+                    <option value="كي كارت (QiCard)">كي كارت (QiCard)</option>
+                </select>
+            </div>
+
+            <!-- صندوق تعليمات التحويل الفيروزي المباشر المطابق للصورة -->
+            <div id="walletInfoBox" class="wallet-info-box" style="display: none;">
+                <div id="walletTitle" style="font-weight: bold; margin-bottom: 5px;"></div>
+                <div id="walletDetails"></div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a id="whatsappOrderBtn" href="#" target="_blank" class="submit-order-btn" onclick="submitOrder(event)">إرسال الطلب عبر واتساب وحفظ المخزون</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 10px;">
+                <button class="cancel-btn" onclick="closeCartModal()">إلغاء</button>
             </div>
         </div>
     </div>
@@ -331,10 +355,10 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
-        const merchantPhone = '9647700000000'; // رقم واتساب التاجر
+        const merchantPhone = '9647700000000'; // رقم الواتساب
 
-        const merchantZainCash = '07811111111';
-        const merchantQiCard = '9876543210987654';
+        const merchantZainCash = '078XXXXXXXX';
+        const merchantQiCard = 'xxxx-xxxx-xxxx-xxxx';
 
         let allProducts = [];
         let deliveryZones = [];
@@ -380,31 +404,26 @@
                 const zoneName = zone.governorate || zone.Governorate || zone.zone || zone.Zone || 'منطقة';
                 const zoneFee = zone.delivery_fee_iqd || zone.Delivery_Fee_IQD || zone.fee || zone.Fee || 0;
                 
-                govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName} (${parseInt(zoneFee).toLocaleString()} د.ع)</option>`;
+                govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName}</option>`;
             });
         }
 
         function toggleWalletInput() {
             const payment = document.getElementById('paymentMethod').value;
-            const walletGroup = document.getElementById('walletGroup');
             const walletInfoBox = document.getElementById('walletInfoBox');
-            const walletLabel = document.getElementById('walletLabel');
-            const walletInstructions = document.getElementById('walletInstructions');
+            const walletTitle = document.getElementById('walletTitle');
+            const walletDetails = document.getElementById('walletDetails');
 
-            if (payment === 'ZainCash') {
-                walletGroup.style.display = 'block';
+            if (payment.includes('ZainCash')) {
                 walletInfoBox.style.display = 'block';
-                walletInstructions.innerHTML = `يرجى تحويل المبلغ عبر زين كاش إلى رقم محفظة التاجر: <strong>${merchantZainCash}</strong>`;
-                walletLabel.innerText = 'رقم هاتف زين كاش المحول منه:';
-            } else if (payment === 'QiCard') {
-                walletGroup.style.display = 'block';
+                walletTitle.innerText = 'تحويل المبلغ إلى محفظة زين كاش الخاصة بالمتاجر:';
+                walletDetails.innerText = `${merchantZainCash} (رقم محفظة زين كاش الخاص بك)`;
+            } else if (payment.includes('QiCard')) {
                 walletInfoBox.style.display = 'block';
-                walletInstructions.innerHTML = `يرجى التحويل إلى حساب كي كارد للتاجر: <strong>${merchantQiCard}</strong>`;
-                walletLabel.innerText = 'رقم بطاقة أو وصل كي كارد:';
+                walletTitle.innerText = 'تحويل المبلغ إلى حساب كي كارت الخاص بالمتجر:';
+                walletDetails.innerText = `${merchantQiCard} (رقم حساب كي كارت الخاص بك)`;
             } else {
-                walletGroup.style.display = 'none';
                 walletInfoBox.style.display = 'none';
-                document.getElementById('walletNumber').value = '';
             }
         }
 
@@ -451,7 +470,7 @@
                 const pStock = parseInt(product.stock_qty || product.Stock_Qty || '0');
                 const pImage = product.image_url || product.Image_URL || '';
 
-                const safeProduct = JSON.stringify({name: pName, price: pPrice}).replace(/"/g, '&quot;');
+                const safeProduct = JSON.stringify({name: pName, price: pPrice, stock: pStock}).replace(/"/g, '&quot;');
                 
                 let isOutOfStock = pStock <= 0;
                 let btnText = isOutOfStock ? 'نفذت الكمية' : 'إضافة للسلة';
@@ -464,7 +483,7 @@
                             <div>
                                 <div class="product-title">${pName}</div>
                                 <div class="product-price">${pPrice} د.ع</div>
-                                <div class="product-stock">المتوفر: ${pStock}</div>
+                                <div class="product-stock">المتوفر في المخزن: ${pStock}</div>
                             </div>
                             <button class="add-btn" ${btnDisabled} onclick='addToCart(${safeProduct})'>${btnText}</button>
                         </div>
@@ -476,11 +495,18 @@
         }
 
         function addToCart(product) {
+            if (product.stock <= 0) return;
+
             let existingItem = cart.find(item => item.name === product.name);
             if (existingItem) {
-                existingItem.qty += 1;
+                if (existingItem.qty < product.stock) {
+                    existingItem.qty += 1;
+                } else {
+                    alert('لقد وصلت للحد الأقصى للكمية المتوفرة في المخزن!');
+                    return;
+                }
             } else {
-                cart.push({ name: product.name, price: product.price, qty: 1 });
+                cart.push({ name: product.name, price: product.price, qty: 1, maxStock: product.stock });
             }
 
             updateCartUI();
@@ -552,24 +578,18 @@
         }
 
         function updateWhatsAppLink(totalFinal) {
-            const name = document.getElementById('custName').value.trim() || 'زبون';
-            const gov = document.getElementById('custGov').value || 'غير محدد';
-            const address = document.getElementById('custAddress').value.trim() || 'غير محدد';
-            const phone = document.getElementById('custPhone').value.trim() || 'غير محدد';
+            const name = document.getElementById('custName').value.trim() || '';
+            const phone = document.getElementById('custPhone').value.trim() || '';
+            const gov = document.getElementById('custGov').value || '';
+            const address = document.getElementById('custAddress').value.trim() || '';
             const payment = document.getElementById('paymentMethod').value;
-            const walletNum = document.getElementById('walletNumber').value.trim();
-
-            let paymentText = payment;
-            if (walletNum) {
-                paymentText += ` (رقم الحوالة/ الهاتف: ${walletNum})`;
-            }
 
             let message = `🛒 *طلب جديد عبر النظام السحابي Pro*\n\n`;
-            message += `👤 *الاسم:* ${name}\n`;
+            message += `👤 *الاسم الكامل:* ${name}\n`;
+            message += `📱 *رقم الهاتف:* ${phone}\n`;
             message += `📍 *المحافظة:* ${gov}\n`;
             message += `🏠 *العنوان التفصيلي:* ${address}\n`;
-            message += `📱 *رقم الهاتف:* ${phone}\n`;
-            message += `💳 *طريقة الدفع:* ${paymentText}\n\n`;
+            message += `💳 *طريقة الدفع:* ${payment}\n\n`;
             message += `📦 *المنتجات المطلوبة:*\n`;
             
             cart.forEach((item, index) => {
@@ -584,36 +604,33 @@
             document.getElementById('whatsappOrderBtn').href = whatsappURL;
         }
 
-        async function submitOrder() {
+        async function submitOrder(e) {
             const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
             const gov = document.getElementById('custGov').value;
             const address = document.getElementById('custAddress').value.trim();
-            const phone = document.getElementById('custPhone').value.trim();
             const payment = document.getElementById('paymentMethod').value;
-            const walletNum = document.getElementById('walletNumber').value.trim();
 
-            // ⛔ الشرط الإلزامي: عدم المتابعة وعدم التسجيل إلا عند اكتمال البيانات والضغط المؤكد
-            if (!name || !gov || !address || !phone) {
-                alert('يرجى ملء كافة معلومات الاسم والمحافظة والعنوان ورقم الهاتف قبل التأكيد!');
-                event.preventDefault();
+            if (!name || !phone || !gov || !address) {
+                alert('يرجى ملء كافة حقول الاسم، رقم الهاتف، المحافظة، والعنوان التفصيلي قبل التأكيد!');
+                e.preventDefault();
                 return;
             }
 
             const totalFinal = currentSubtotal + currentDeliveryFee;
 
-            // 📤 إرسال البيانات حصرياً عند التأكيد للسحابة (Backend)
+            // 1. تسليط البيانات وحفظ المخزون في السحابة
             try {
-                await fetch(scriptURL, {
+                fetch(scriptURL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         custName: name,
+                        custPhone: phone,
                         custGov: gov,
                         custAddress: address,
-                        custPhone: phone,
                         paymentMethod: payment,
-                        walletNumber: walletNum,
                         cart: cart,
                         subtotal: currentSubtotal,
                         deliveryFee: currentDeliveryFee,
@@ -624,18 +641,20 @@
                 console.error('تعذر تسجيل البيانات في الجداول:', err);
             }
 
-            // 🧹 مسح نموذج الزبون وتفريغ السلة بالكامل بعد نجاح التأكيد والإرسال
-            document.getElementById('custName').value = '';
-            document.getElementById('custGov').value = '';
-            document.getElementById('custAddress').value = '';
-            document.getElementById('custPhone').value = '';
-            document.getElementById('walletNumber').value = '';
-            document.getElementById('paymentMethod').value = 'Cash on Delivery';
-            toggleWalletInput();
-            
-            cart = [];
-            updateCartUI();
-            closeCartModal();
+            // 2. تفريغ النموذج والسلة بالكامل لتصبح الصفحة نظيفة
+            setTimeout(() => {
+                document.getElementById('custName').value = '';
+                document.getElementById('custPhone').value = '';
+                document.getElementById('custGov').value = '';
+                document.getElementById('custAddress').value = '';
+                document.getElementById('paymentMethod').value = 'الدفع عند الاستلام';
+                toggleWalletInput();
+
+                cart = [];
+                updateCartUI();
+                closeCartModal();
+                fetchStoreData(); // إعادة تحديث المنتجات مع المخزون المخصوم
+            }, 500);
         }
 
         function renderPagination() {
