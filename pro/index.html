@@ -50,14 +50,13 @@
             display: none;
         }
 
-        /* أزرار الفئات والأقسام */
         .categories-container {
             display: flex;
             gap: 10px;
             overflow-x: auto;
             padding-bottom: 10px;
             margin-bottom: 20px;
-            scrollbar-width: none; /* إخفاء شريط التمرير */
+            scrollbar-width: none;
         }
         .categories-container::-webkit-scrollbar { display: none; }
 
@@ -78,7 +77,6 @@
             color: #fff;
         }
 
-        /* شبكة المنتجات المحاذاة بدقة */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -321,7 +319,6 @@
         <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
     </div>
 
-    <!-- شريط الأقسام والفئات -->
     <div class="categories-container" id="categoriesContainer">
         <button class="category-btn active" onclick="selectCategory('all', this)">الكل</button>
     </div>
@@ -412,7 +409,7 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
-        const merchantPhone = '9647700000000'; // رقم الواتساب
+        const merchantPhone = '9647700000000';
 
         const merchantZainCash = '078XXXXXXXX';
         const merchantQiCard = 'xxxx-xxxx-xxxx-xxxx';
@@ -423,7 +420,7 @@
         let selectedCategory = 'all';
         let cart = [];
         let currentPage = 1;
-        const itemsPerPage = 12; // 12 منتج بكل صفحة
+        const itemsPerPage = 12;
         let currentSubtotal = 0;
         let currentDeliveryFee = 0;
 
@@ -454,10 +451,16 @@
             }
         }
 
+        function getProp(obj, propNames) {
+            for (let name of propNames) {
+                if (obj[name] !== undefined && obj[name] !== null) return obj[name];
+            }
+            return '';
+        }
+
         function renderCategories() {
             const categoriesContainer = document.getElementById('categoriesContainer');
-            // استخراج الفئات الفريدة من جدول المنتجات
-            const categories = [...new Set(allProducts.map(p => p.category || p.Category).filter(Boolean))];
+            const categories = [...new Set(allProducts.map(p => getProp(p, ['category', 'Category'])).filter(Boolean))];
             
             categoriesContainer.innerHTML = '<button class="category-btn active" onclick="selectCategory(\'all\', this)">الكل</button>';
             categories.forEach(cat => {
@@ -481,9 +484,9 @@
             clearBtn.style.display = searchTerm.length > 0 ? 'block' : 'none';
 
             filteredProducts = allProducts.filter(product => {
-                const nameAr = (product.name_ar || product.Name_AR || '').toString().toLowerCase();
-                const nameEn = (product.name_en || product.Name_EN || '').toString().toLowerCase();
-                const cat = (product.category || product.Category || '').toString();
+                const nameAr = getProp(product, ['name_ar', 'Name_AR', 'name ar']).toString().toLowerCase();
+                const nameEn = getProp(product, ['name_en', 'Name_EN', 'name en']).toString().toLowerCase();
+                const cat = getProp(product, ['category', 'Category']).toString();
 
                 const matchesSearch = nameAr.includes(searchTerm) || nameEn.includes(searchTerm);
                 const matchesCategory = selectedCategory === 'all' || cat === selectedCategory;
@@ -516,10 +519,10 @@
             const pageItems = filteredProducts.slice(startIndex, endIndex);
 
             pageItems.forEach(product => {
-                const pName = product.name_ar || product.Name_AR || product.name_en || product.Name_EN || 'منتج';
-                const pPrice = product.price_iqd || product.Price_IQD || '0';
-                const pStock = parseInt(product.stock_qty || product.Stock_Qty || '0');
-                const pImage = product.image_url || product.Image_URL || '';
+                const pName = getProp(product, ['name_ar', 'Name_AR', 'name_en', 'Name_EN']) || 'منتج';
+                const pPrice = getProp(product, ['price_iqd', 'Price_IQD', 'price']) || '0';
+                const pStock = parseInt(getProp(product, ['stock_qty', 'Stock_Qty', 'stock']) || '0');
+                const pImage = getProp(product, ['image_url', 'Image_URL', 'image']) || '';
 
                 const safeProduct = JSON.stringify({name: pName, price: pPrice, stock: pStock}).replace(/"/g, '&quot;');
                 
@@ -552,8 +555,8 @@
             govSelect.innerHTML = '<option value="">اختر المحافظة...</option>';
             
             deliveryZones.forEach(zone => {
-                const zoneName = zone.governorate || zone.Governorate || zone.zone || zone.Zone || 'منطقة';
-                const zoneFee = zone.delivery_fee_iqd || zone.Delivery_Fee_IQD || zone.fee || zone.Fee || 0;
+                const zoneName = getProp(zone, ['governorate', 'Governorate', 'zone', 'Zone']) || 'منطقة';
+                const zoneFee = getProp(zone, ['delivery_fee_iqd', 'Delivery_Fee_IQD', 'fee', 'Fee']) || 0;
                 
                 govSelect.innerHTML += `<option value="${zoneName}" data-fee="${zoneFee}">${zoneName}</option>`;
             });
