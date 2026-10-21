@@ -50,10 +50,12 @@
             display: none;
         }
 
+        /* شبكة المنتجات المتناسقة والمضبوطة تماماً */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px;
+            align-items: stretch;
         }
 
         .product-card {
@@ -65,6 +67,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            height: 100%;
         }
 
         .product-card img {
@@ -72,10 +75,18 @@
             height: 140px;
             object-fit: cover;
             border-radius: 8px;
+            background-color: #f0f0f0;
         }
 
-        .product-title { font-size: 16px; font-weight: bold; margin: 10px 0 5px; color: #333; }
-        .product-price { color: #27ae60; font-weight: bold; margin-bottom: 5px; }
+        .product-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-title { font-size: 15px; font-weight: bold; margin: 10px 0 5px; color: #333; min-height: 40px; }
+        .product-price { color: #27ae60; font-weight: bold; margin-bottom: 3px; }
         .product-stock { color: #7f8c8d; font-size: 12px; margin-bottom: 10px; }
 
         .add-btn {
@@ -90,6 +101,10 @@
             transition: 0.2s;
         }
         .add-btn:active { transform: scale(0.98); }
+        .add-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
 
         .floating-cart {
             position: fixed;
@@ -160,6 +175,15 @@
             border-radius: 6px;
             font-size: 14px;
             outline: none;
+        }
+        .wallet-info-box {
+            background-color: #e8f8f5;
+            border: 1px solid #a3e4d7;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #117a65;
+            margin-bottom: 8px;
         }
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
         .submit-order-btn { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; text-align: center;}
@@ -271,7 +295,12 @@
                     <option value="QiCard">كي كارد (Qi Card)</option>
                 </select>
             </div>
-            <!-- خانة تظهر فقط عند اختيار زين كاش أو كي كارد -->
+
+            <!-- صندوق معلومات حساب صاحب المتجر لكي يحول الزبون عليه -->
+            <div id="walletInfoBox" class="wallet-info-box" style="display: none;">
+                <span id="walletInstructions">قم بالتحويل على الرقم التالي: <strong>07800000000</strong> ثم أدخل رقم الحوالة أدناه:</span>
+            </div>
+
             <div class="form-group" id="walletGroup" style="display: none;">
                 <label id="walletLabel">رقم الحوالة أو الهاتف المحول منه:</label>
                 <input type="text" id="walletNumber" placeholder="أدخل الرقم هنا" oninput="updateWhatsAppLink()">
@@ -304,7 +333,11 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
-        const merchantPhone = '9647700000000'; // ضع رقم هاتف التاجر هنا
+        const merchantPhone = '9647700000000'; // رقم واتساب التاجر
+
+        // أرقام الحسابات العائدة لصاحب المتجر للتحويل عليها
+        const merchantZainCash = '07811111111';
+        const merchantQiCard = '9876543210987654';
 
         let allProducts = [];
         let deliveryZones = [];
@@ -357,16 +390,23 @@
         function toggleWalletInput() {
             const payment = document.getElementById('paymentMethod').value;
             const walletGroup = document.getElementById('walletGroup');
+            const walletInfoBox = document.getElementById('walletInfoBox');
             const walletLabel = document.getElementById('walletLabel');
+            const walletInstructions = document.getElementById('walletInstructions');
 
             if (payment === 'ZainCash') {
                 walletGroup.style.display = 'block';
+                walletInfoBox.style.display = 'block';
+                walletInstructions.innerHTML = `يرجى تحويل المبلغ عبر زين كاش إلى رقم محفظة التاجر: <strong>${merchantZainCash}</strong>`;
                 walletLabel.innerText = 'رقم هاتف زين كاش المحول منه:';
             } else if (payment === 'QiCard') {
                 walletGroup.style.display = 'block';
+                walletInfoBox.style.display = 'block';
+                walletInstructions.innerHTML = `يرجى التحويل إلى حساب كي كارد للتاجر: <strong>${merchantQiCard}</strong>`;
                 walletLabel.innerText = 'رقم بطاقة أو وصل كي كارد:';
             } else {
                 walletGroup.style.display = 'none';
+                walletInfoBox.style.display = 'none';
                 document.getElementById('walletNumber').value = '';
             }
         }
@@ -411,20 +451,28 @@
             pageItems.forEach(product => {
                 const pName = product.name_ar || product.Name_AR || product.name_en || product.Name_EN || 'منتج';
                 const pPrice = product.price_iqd || product.Price_IQD || '0';
-                const pStock = product.stock_qty || product.Stock_Qty || '0';
+                const pStock = parseInt(product.stock_qty || product.Stock_Qty || '0');
                 const pImage = product.image_url || product.Image_URL || '';
 
                 const safeProduct = JSON.stringify({name: pName, price: pPrice}).replace(/"/g, '&quot;');
+                
+                // التحقق من المخزون: إذا كان 0 يتم تعطيل زر الشراء
+                let isOutOfStock = pStock <= 0;
+                let btnText = isOutOfStock ? 'نفذت الكمية' : 'إضافة للسلة';
+                let btnClass = isOutOfStock ? 'add-btn' : 'add-btn';
+                let btnDisabled = isOutOfStock ? 'disabled' : '';
 
                 container.innerHTML += `
                     <div class="product-card">
                         <img src="${pImage}" alt="${pName}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-                        <div>
-                            <div class="product-title">${pName}</div>
-                            <div class="product-price">${pPrice} د.ع</div>
-                            <div class="product-stock">المتوفر: ${pStock}</div>
+                        <div class="product-info">
+                            <div>
+                                <div class="product-title">${pName}</div>
+                                <div class="product-price">${pPrice} د.ع</div>
+                                <div class="product-stock">المتوفر: ${pStock}</div>
+                            </div>
+                            <button class="${btnClass}" ${btnDisabled} onclick='addToCart(${safeProduct})'>${btnText}</button>
                         </div>
-                        <button class="add-btn" onclick='addToCart(${safeProduct})'>إضافة للسلة</button>
                     </div>
                 `;
             });
@@ -557,27 +605,24 @@
 
             const totalFinal = currentSubtotal + currentDeliveryFee;
 
-            try {
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        custName: name,
-                        custGov: gov,
-                        custAddress: address,
-                        custPhone: phone,
-                        paymentMethod: payment,
-                        walletNumber: walletNum,
-                        cart: cart,
-                        subtotal: currentSubtotal,
-                        deliveryFee: currentDeliveryFee,
-                        totalAmount: totalFinal
-                    })
-                });
-            } catch (err) {
-                console.error('تعذر تسجيل البيانات في الجداول:', err);
-            }
+            // إرسال البيانات بشكل خفيف وسريع للسحابة بدون تجميد المتصفح
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    custName: name,
+                    custGov: gov,
+                    custAddress: address,
+                    custPhone: phone,
+                    paymentMethod: payment,
+                    walletNumber: walletNum,
+                    cart: cart,
+                    subtotal: currentSubtotal,
+                    deliveryFee: currentDeliveryFee,
+                    totalAmount: totalFinal
+                })
+            }).catch(err => console.error('خطأ في إرسال السحابة:', err));
 
             closeCartModal();
         }
