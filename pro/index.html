@@ -50,7 +50,6 @@
             display: none;
         }
 
-        /* شبكة المنتجات المتناسقة والمضبوطة تماماً */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -296,9 +295,8 @@
                 </select>
             </div>
 
-            <!-- صندوق معلومات حساب صاحب المتجر لكي يحول الزبون عليه -->
             <div id="walletInfoBox" class="wallet-info-box" style="display: none;">
-                <span id="walletInstructions">قم بالتحويل على الرقم التالي: <strong>07800000000</strong> ثم أدخل رقم الحوالة أدناه:</span>
+                <span id="walletInstructions">قم بالتحويل على الرقم التالي لصاحب المتجر ثم أدخل رقم الحوالة أدناه:</span>
             </div>
 
             <div class="form-group" id="walletGroup" style="display: none;">
@@ -335,7 +333,6 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec';
         const merchantPhone = '9647700000000'; // رقم واتساب التاجر
 
-        // أرقام الحسابات العائدة لصاحب المتجر للتحويل عليها
         const merchantZainCash = '07811111111';
         const merchantQiCard = '9876543210987654';
 
@@ -456,10 +453,8 @@
 
                 const safeProduct = JSON.stringify({name: pName, price: pPrice}).replace(/"/g, '&quot;');
                 
-                // التحقق من المخزون: إذا كان 0 يتم تعطيل زر الشراء
                 let isOutOfStock = pStock <= 0;
                 let btnText = isOutOfStock ? 'نفذت الكمية' : 'إضافة للسلة';
-                let btnClass = isOutOfStock ? 'add-btn' : 'add-btn';
                 let btnDisabled = isOutOfStock ? 'disabled' : '';
 
                 container.innerHTML += `
@@ -471,7 +466,7 @@
                                 <div class="product-price">${pPrice} د.ع</div>
                                 <div class="product-stock">المتوفر: ${pStock}</div>
                             </div>
-                            <button class="${btnClass}" ${btnDisabled} onclick='addToCart(${safeProduct})'>${btnText}</button>
+                            <button class="add-btn" ${btnDisabled} onclick='addToCart(${safeProduct})'>${btnText}</button>
                         </div>
                     </div>
                 `;
@@ -597,33 +592,49 @@
             const payment = document.getElementById('paymentMethod').value;
             const walletNum = document.getElementById('walletNumber').value.trim();
 
+            // ⛔ الشرط الإلزامي: عدم المتابعة وعدم التسجيل إلا عند اكتمال البيانات والضغط المؤكد
             if (!name || !gov || !address || !phone) {
-                alert('يرجى ملء كافة معلومات الاسم والمحافظة والعنوان ورقم الهاتف!');
+                alert('يرجى ملء كافة معلومات الاسم والمحافظة والعنوان ورقم الهاتف قبل التأكيد!');
                 event.preventDefault();
                 return;
             }
 
             const totalFinal = currentSubtotal + currentDeliveryFee;
 
-            // إرسال البيانات بشكل خفيف وسريع للسحابة بدون تجميد المتصفح
-            fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    custName: name,
-                    custGov: gov,
-                    custAddress: address,
-                    custPhone: phone,
-                    paymentMethod: payment,
-                    walletNumber: walletNum,
-                    cart: cart,
-                    subtotal: currentSubtotal,
-                    deliveryFee: currentDeliveryFee,
-                    totalAmount: totalFinal
-                })
-            }).catch(err => console.error('خطأ في إرسال السحابة:', err));
+            // 📤 إرسال البيانات حصرياً عند التأكيد للسحابة (Backend)
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        custName: name,
+                        custGov: gov,
+                        custAddress: address,
+                        custPhone: phone,
+                        paymentMethod: payment,
+                        walletNumber: walletNum,
+                        cart: cart,
+                        subtotal: currentSubtotal,
+                        deliveryFee: currentDeliveryFee,
+                        totalAmount: totalFinal
+                    })
+                });
+            } catch (err) {
+                console.error('تعذر تسجيل البيانات في الجداول:', err);
+            }
 
+            // 🧹 مسح نموذج الزبون وتفريغ السلة بالكامل بعد نجاح التأكيد والإرسال
+            document.getElementById('custName').value = '';
+            document.getElementById('custGov').value = '';
+            document.getElementById('custAddress').value = '';
+            document.getElementById('custPhone').value = '';
+            document.getElementById('walletNumber').value = '';
+            document.getElementById('paymentMethod').value = 'Cash on Delivery';
+            toggleWalletInput();
+            
+            cart = [];
+            updateCartUI();
             closeCartModal();
         }
 
