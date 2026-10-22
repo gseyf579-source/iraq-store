@@ -461,7 +461,6 @@
             }
         }
 
-        // دالة بحث شاملة لجميع صيغ أسماء الأعمدة وتنظيف الروابط
         function getProp(obj, propNames) {
             if (!obj) return '';
             for (let prop in obj) {
@@ -476,7 +475,6 @@
             return '';
         }
 
-        // معالجة وتنظيف رابط الصورة لإزالة المسافات وحل مشاكل الروابط
         function formatImageUrl(rawUrl) {
             if (!rawUrl) return 'https://via.placeholder.com/300x300?text=No+Image';
             let url = rawUrl.toString().trim();
@@ -563,7 +561,7 @@
                 container.innerHTML += `
                     <div class="product-card">
                         <div class="product-img-wrapper">
-                            <img src="${pImage}" alt="${pName}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x300?text=Image+Error';">
+                            <img src="${pImage}" alt="${pName}" referrerpolicy="no-referrer" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x300?text=Image+Error';">
                         </div>
                         <div class="product-info">
                             <div>
