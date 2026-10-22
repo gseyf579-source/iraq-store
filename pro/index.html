@@ -440,9 +440,8 @@
                 
                 let rawProducts = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
 
-                // تنقية المنتجات الحقيقية وإهمال الصفوف الفارغة
                 allProducts = rawProducts.filter(p => {
-                    const name = getProp(p, ['name_ar', 'Name_AR', 'name_en', 'Name_EN']);
+                    const name = getProp(p, ['name_ar', 'Name_AR', 'name_en', 'Name_EN', 'name ar', 'name en']);
                     return name && name.toString().trim() !== '';
                 });
 
@@ -462,11 +461,30 @@
             }
         }
 
+        // دالة بحث شاملة لجميع صيغ أسماء الأعمدة وتنظيف الروابط
         function getProp(obj, propNames) {
-            for (let name of propNames) {
-                if (obj[name] !== undefined && obj[name] !== null) return obj[name];
+            if (!obj) return '';
+            for (let prop in obj) {
+                let cleanKey = prop.toString().toLowerCase().replace(/_/g, '').replace(/ /g, '');
+                for (let name of propNames) {
+                    let cleanName = name.toString().toLowerCase().replace(/_/g, '').replace(/ /g, '');
+                    if (cleanKey === cleanName) {
+                        return obj[prop] !== undefined && obj[prop] !== null ? obj[prop] : '';
+                    }
+                }
             }
             return '';
+        }
+
+        // معالجة وتنظيف رابط الصورة لإزالة المسافات وحل مشاكل الروابط
+        function formatImageUrl(rawUrl) {
+            if (!rawUrl) return 'https://via.placeholder.com/300x300?text=No+Image';
+            let url = rawUrl.toString().trim();
+            if (url.startsWith('//')) url = 'https:' + url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            return url;
         }
 
         function renderCategories() {
@@ -530,10 +548,11 @@
             const pageItems = filteredProducts.slice(startIndex, endIndex);
 
             pageItems.forEach(product => {
-                const pName = getProp(product, ['name_ar', 'Name_AR', 'name_en', 'Name_EN']) || 'منتج';
-                const pPrice = getProp(product, ['price_iqd', 'Price_IQD', 'price']) || '0';
-                const pStock = parseInt(getProp(product, ['stock_qty', 'Stock_Qty', 'stock']) || '0');
-                const pImage = getProp(product, ['image_url', 'Image_URL', 'image']) || '';
+                const pName = getProp(product, ['name_ar', 'Name_AR', 'name_en', 'Name_EN', 'name ar', 'name en']) || 'منتج';
+                const pPrice = getProp(product, ['price_iqd', 'Price_IQD', 'price', 'priceiqd']) || '0';
+                const pStock = parseInt(getProp(product, ['stock_qty', 'Stock_Qty', 'stock', 'stockqty']) || '0');
+                const rawImage = getProp(product, ['image_url', 'Image_URL', 'image', 'imageurl']);
+                const pImage = formatImageUrl(rawImage);
 
                 const safeProduct = JSON.stringify({name: pName, price: pPrice, stock: pStock}).replace(/"/g, '&quot;');
                 
@@ -544,7 +563,7 @@
                 container.innerHTML += `
                     <div class="product-card">
                         <div class="product-img-wrapper">
-                            <img src="${pImage}" alt="${pName}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                            <img src="${pImage}" alt="${pName}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x300?text=Image+Error';">
                         </div>
                         <div class="product-info">
                             <div>
