@@ -288,7 +288,6 @@
         @keyframes fadein { from {bottom: 50px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 50px; opacity: 0;} }
 
-        /* تنسيق ومحاذاة مربعات الصفحات لتصبح مربعات متناسقة تماماً */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -439,11 +438,13 @@
                 const response = await fetch(scriptURL);
                 const data = await response.json();
                 
-                if (Array.isArray(data.products)) {
-                    allProducts = data.products;
-                } else if (Array.isArray(data)) {
-                    allProducts = data;
-                }
+                let rawProducts = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
+
+                // تنقية المنتجات الحقيقية وإهمال الصفوف الفارغة
+                allProducts = rawProducts.filter(p => {
+                    const name = getProp(p, ['name_ar', 'Name_AR', 'name_en', 'Name_EN']);
+                    return name && name.toString().trim() !== '';
+                });
 
                 if (Array.isArray(data.delivery_zones)) {
                     deliveryZones = data.delivery_zones;
@@ -674,11 +675,10 @@
             updateWhatsAppLink(totalFinal);
         }
 
-        // دالة تحديث رابط الواتساب لضمان إدراج العنوان التفصيلي ورقم الهاتف دائماً
         function updateWhatsAppLink(totalFinal = (currentSubtotal + currentDeliveryFee)) {
             const name = document.getElementById('custName').value.trim() || 'غير محدد';
             const phone = document.getElementById('custPhone').value.trim() || 'غير محدد';
-            const gov = document.getElementById('custGov').value || 'غير مححدد';
+            const gov = document.getElementById('custGov').value || 'غير محدد';
             const address = document.getElementById('custAddress').value.trim() || 'غير محدد';
             const payment = document.getElementById('paymentMethod').value;
 
@@ -773,7 +773,6 @@
             }
         }
 
-        // ربط أحداث الإدخال لتحديث رسالة الواتساب فوراً عند الكتابة
         ['custName', 'custPhone', 'custGov', 'custAddress'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => updateWhatsAppLink());
             document.getElementById(id).addEventListener('change', () => updateWhatsAppLink());
