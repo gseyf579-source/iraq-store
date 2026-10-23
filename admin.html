@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم - إضافة منتج جديد</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f4f6f8; padding: 20px; direction: rtl; }
+    .card { max-width: 450px; margin: 30px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #333; margin-top: 0; }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+    button { background: #10b981; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #059669; }
+    .gate { text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="login-gate">
+    <h2>🔒 تسجيل دخول المسؤول</h2>
+    <input type="password" id="input-pin" placeholder="أدخل رمز PIN السري">
+    <button onclick="verifyAdmin()">دخول</button>
+  </div>
+
+  <div class="card" id="admin-panel" style="display:none;">
+    <h2>📦 إضافة منتج جديد</h2>
+    
+    <label>اسم المنتج:</label>
+    <input type="text" id="p-name" placeholder="مثال: ساعة يد رجالية">
+    
+    <label>التصنيف:</label>
+    <input type="text" id="p-category" placeholder="مثال: إكسسوارات">
+    
+    <label>السعر (د.ع):</label>
+    <input type="number" id="p-price" placeholder="52000">
+    
+    <label>الكمية المتوفرة:</label>
+    <input type="number" id="p-stock" placeholder="15">
+    
+    <label>صورة المنتج (من الجهاز):</label>
+    <input type="file" id="p-file" accept="image/*">
+    
+    <button id="save-btn" onclick="uploadProduct()">رفع وحفظ المنتج في المتجر</button>
+  </div>
+
+  <script>
+    // 1. ضع رمز PIN السري الخاص بك هنا (يجب أن يطابق رمز Code.gs)
+    const SECRET_PIN = "mahdi1953";
+    
+    // 2. ضع رابط Google Apps Script Web App الخاص بك هنا
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec";
+
+    function verifyAdmin() {
+      const pin = document.getElementById('input-pin').value;
+      if (pin === SECRET_PIN) {
+        document.getElementById('login-gate').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'block';
+      } else {
+        alert('رمز PIN غير صحيح!');
+      }
+    }
+
+    function uploadProduct() {
+      const fileInput = document.getElementById('p-file');
+      const file = fileInput.files[0];
+      const name = document.getElementById('p-name').value;
+      const price = document.getElementById('p-price').value;
+
+      if (!name || !price) {
+        alert("يرجى إدخال اسم المنتج والسعر على الأقل");
+        return;
+      }
+
+      if (!file) {
+        alert("يرجى اختيار صورة للمنتج");
+        return;
+      }
+
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "جاري الرفع والحفظ...";
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        
+        const payload = {
+          adminToken: SECRET_PIN,
+          nameAr: name,
+          category: document.getElementById('p-category').value,
+          price: price,
+          stock: document.getElementById('p-stock').value,
+          imageBase64: base64Data,
+          imageName: file.name,
+          mimeType: file.type
+        };
+
+        fetch(WEB_APP_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "success") {
+            alert("تم إضافة المنتج ونشر الصورة بنجاح!");
+            location.reload();
+          } else {
+            alert("خطأ: " + data.message);
+            saveBtn.disabled = false;
+            saveBtn.innerText = "رفع وحفظ المنتج في المتجر";
+          }
+        })
+        .catch(err => {
+          alert("حدث خطأ أثناء الاتصال بالخادم");
+          saveBtn.disabled = false;
+          saveBtn.innerText = "رفع وحفظ المنتج في المتجر";
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
