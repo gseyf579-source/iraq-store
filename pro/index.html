@@ -39,56 +39,47 @@
         <div class="bg-white rounded-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl">
             <button onclick="closeCheckoutModal()" class="absolute top-4 left-4 text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
             
-            <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">إتمام الطلب</h3>
+            <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">إتمام الطلب (خطوة بخطوة)</h3>
             
             <form id="orderForm" onsubmit="submitOrder(event)">
-                <div class="mb-3">
-                    <label class="block text-sm font-semibold mb-1">الاسم الكامل:</label>
-                    <input type="text" id="customerName" required class="w-full border rounded-lg p-2 text-sm">
+                <!-- الخطوة 1 -->
+                <div class="mb-3 bg-gray-50 p-3 rounded-lg border">
+                    <label class="block text-xs font-bold text-green-800 mb-1">1. معلومات الزبون:</label>
+                    <input type="text" id="customerName" required placeholder="الاسم الكامل" class="w-full border rounded-lg p-2 text-sm mb-2 bg-white">
+                    <input type="tel" id="customerPhone" required placeholder="رقم الهاتف" class="w-full border rounded-lg p-2 text-sm bg-white">
                 </div>
 
-                <div class="mb-3">
-                    <label class="block text-sm font-semibold mb-1">رقم الهاتف:</label>
-                    <input type="tel" id="customerPhone" required class="w-full border rounded-lg p-2 text-sm">
-                </div>
-
-                <div class="mb-3">
-                    <label class="block text-sm font-semibold mb-1">اختر المحافظة:</label>
-                    <select id="governorateSelect" required class="w-full border rounded-lg p-2 text-sm" onchange="updateTotal()">
-                        <option value="">جاري تحميل المحافظات...</option>
+                <!-- الخطوة 2 -->
+                <div class="mb-3 bg-gray-50 p-3 rounded-lg border">
+                    <label class="block text-xs font-bold text-green-800 mb-1">2. عنوان الشحن:</label>
+                    <select id="governorateSelect" required class="w-full border rounded-lg p-2 text-sm mb-2 bg-white" onchange="updateTotal()">
+                        <option value="">اختر المحافظة...</option>
                     </select>
+                    <textarea id="customerAddress" required rows="2" placeholder="العنوان بالتفصيل (المنطقة، الشارع، أقرب نقطة دالة)" class="w-full border rounded-lg p-2 text-sm bg-white"></textarea>
                 </div>
 
-                <div class="mb-3">
-                    <label class="block text-sm font-semibold mb-1">العنوان بالتفصيل:</label>
-                    <textarea id="customerAddress" required rows="2" class="w-full border rounded-lg p-2 text-sm"></textarea>
-                </div>
-
-                <!-- طريقة الدفع -->
-                <div class="mb-3">
-                    <label class="block text-sm font-semibold mb-1">طريقة الدفع:</label>
-                    <select id="paymentMethod" onchange="togglePaymentDetails()" class="w-full border rounded-lg p-2 text-sm">
-                        <option value="Cash on Delivery">الدفع عند الاستلام</option>
-                        <option value="ZainCash">زين كاش (ZainCash)</option>
-                        <option value="MasterCard">بطاقة ائتمانية / ماستركارد</option>
+                <!-- الخطوة 3 -->
+                <div class="mb-3 bg-gray-50 p-3 rounded-lg border">
+                    <label class="block text-xs font-bold text-green-800 mb-1">3. طريقة الدفع:</label>
+                    <select id="paymentMethod" onchange="togglePaymentDetails()" class="w-full border rounded-lg p-2 text-sm bg-white">
+                        <option value="الدفع عند الاستلام">الدفع عند الاستلام</option>
+                        <option value="زين كاش (ZainCash)">زين كاش (ZainCash)</option>
+                        <option value="كي كارت (QiCard)">كي كارت (QiCard)</option>
                     </select>
-                </div>
 
-                <!-- صندوق يعرض رقم محفظة وحساب المتجر مع حقل إدخال رقم سند التحويل -->
-                <div id="paymentDetailsDiv" class="mb-3 hidden bg-gray-50 p-3 rounded-lg border text-xs">
-                    <p id="storeAccountInfo" class="font-bold text-blue-700 mb-2 bg-blue-50 p-2 rounded border border-blue-200"></p>
-                    <label class="block font-bold mb-1 text-gray-700">أدخل رقم التحويل أو رقم السند (Reference No.):</label>
-                    <input type="text" id="walletInfo" class="w-full border rounded-lg p-2 text-sm bg-white" placeholder="مثال: 123456789">
+                    <div id="paymentDetailsDiv" class="mt-2 hidden">
+                        <p id="storeAccountInfo" class="text-xs font-bold text-blue-700 bg-blue-50 p-2 rounded border border-blue-200 mb-2"></p>
+                    </div>
                 </div>
 
                 <div class="border-t pt-3 mb-4 bg-gray-50 p-3 rounded-lg">
                     <div class="flex justify-between font-bold text-base text-gray-800">
-                        <span>الإجمالي الكلي (مع التوصيل):</span>
+                        <span>الإجمالي الكلي:</span>
                         <span id="totalPrice" class="text-green-600">0 د.ع</span>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition text-sm">
+                <button type="submit" id="submitOrderBtn" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition text-sm">
                     تأكيد وإرسال الطلب
                 </button>
             </form>
@@ -97,8 +88,7 @@
 
     <!-- جافاسكريبت المتجر -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec"; // استبدل برابطك
-        const STORE_WHATSAPP = "9647800000000"; // ⚠️ ضع رقم واتساب الأعمال الخاص بك هنا (بدون علامة +، مع رمز الدولة العراقية 964)
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec"; // استبدل برابطك الفعلي
 
         let allProducts = [];
         let filteredProducts = [];
@@ -268,12 +258,12 @@
             let div = document.getElementById('paymentDetailsDiv');
             let infoBox = document.getElementById('storeAccountInfo');
             
-            if (method === "ZainCash") {
+            if (method === "زين كاش (ZainCash)") {
                 div.classList.remove('hidden');
-                infoBox.innerHTML = "💡 <b>رقم محفظة زين كاش للمتجر:</b> 07800000000<br>(يرجى التحويل حصراً على هذا الرقم وإدخال رقم السند أدناه)";
-            } else if (method === "MasterCard") {
+                infoBox.innerHTML = "تحويل المبلغ إلى محفظة زين كاش الخاصة بالمتجر:<br><b>078XXXXXXXX</b> (رقم محفظة زين كاش الخاص بالمتجر)";
+            } else if (method === "كي كارت (QiCard)") {
                 div.classList.remove('hidden');
-                infoBox.innerHTML = "💡 <b>رقم حساب الماستركارد للمتجر:</b> IQ12ABCD000000000000<br>(يرجى التحويل وإدخال رقم مرجع الحوالة أدناه)";
+                infoBox.innerHTML = "تحويل المبلغ إلى حساب كي كارت الخاص بالمتجر:<br><b>xxxx-xxxx-xxxx-xxxx</b> (رقم حساب كي كارت الخاص بالمتجر)";
             } else {
                 div.classList.add('hidden');
             }
@@ -292,12 +282,17 @@
         function submitOrder(e) {
             e.preventDefault();
             
+            // قفل زر الإرسال لمنع التكرار نهائياً عند الضغط المتكرر
+            let submitBtn = document.getElementById('submitOrderBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "جاري إرسال الطلب...";
+            submitBtn.className = "w-full bg-gray-400 text-white py-3 rounded-lg font-bold shadow cursor-not-allowed text-sm";
+            
             let customerName = document.getElementById('customerName').value;
             let customerPhone = document.getElementById('customerPhone').value;
             let governorate = document.getElementById('governorateSelect').value;
             let address = document.getElementById('customerAddress').value;
             let paymentMethod = document.getElementById('paymentMethod').value;
-            let walletInfo = document.getElementById('walletInfo').value;
             
             let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
             let select = document.getElementById('governorateSelect');
@@ -312,7 +307,6 @@
                 governorate: governorate,
                 address: address,
                 paymentMethod: paymentMethod,
-                walletInfo: walletInfo,
                 deliveryFee: deliveryFee,
                 totalPrice: totalPrice,
                 cart: cart
@@ -328,13 +322,6 @@
                 if (data.status === "success") {
                     alert("تم إرسال طلبك بنجاح برقم: " + data.orderId);
                     
-                    // تجهيز رسالة واتساب الأعمال الفورية للطلب
-                    let itemsText = cart.map(i => `- ${i.name} (${i.qty} عدد) = ${i.price * i.qty} د.ع`).join('%0A');
-                    let waText = `🛍️ *طلب شراء جديد*%0A------------------%0A🔢 رقم الطلب: ${data.orderId}%0A👤 الاسم: ${customerName}%0A📞 الهاتف: ${customerPhone}%0A📍 المحافظة: ${governorate}%0A🏠 العنوان: ${address}%0A💳 الدفع: ${paymentMethod} ${walletInfo ? '[سند: '+walletInfo+']' : ''}%0A------------------%0A📦 *المنتجات:*%0A${itemsText}%0A------------------%0A💰 *الإجمالي مع التوصيل:* ${totalPrice} د.ع`;
-                    
-                    // فتح واتساب الأعمال تلقائياً لإرسال التفاصيل لك
-                    window.open(`https://wa.me/${STORE_WHATSAPP}?text=${waText}`, '_blank');
-
                     cart = [];
                     document.getElementById('cartCount').innerText = "0";
                     closeCheckoutModal();
@@ -342,10 +329,17 @@
                 } else {
                     alert("حدث خطأ: " + data.message);
                 }
+                // إعادة تفعيل الزر بعد الانتهاء
+                submitBtn.disabled = false;
+                submitBtn.innerText = "تأكيد وإرسال الطلب";
+                submitBtn.className = "w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition text-sm";
             })
             .catch(err => {
                 console.error("Order error:", err);
                 alert("حدث خطأ في الاتصال بالخادم.");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "تأكيد وإرسال الطلب";
+                submitBtn.className = "w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition text-sm";
             });
         }
     </script>
