@@ -39,26 +39,23 @@
         <div class="bg-white rounded-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl">
             <button onclick="closeCheckoutModal()" class="absolute top-4 left-4 text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
             
-            <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">إتمام الطلب (خطوة بخطوة)</h3>
+            <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">إتمام الطلب</h3>
             
             <form id="orderForm" onsubmit="submitOrder(event)">
-                <!-- الخطوة 1 -->
                 <div class="mb-3 bg-gray-50 p-3 rounded-lg border">
                     <label class="block text-xs font-bold text-green-800 mb-1">1. معلومات الزبون:</label>
                     <input type="text" id="customerName" required placeholder="الاسم الكامل" class="w-full border rounded-lg p-2 text-sm mb-2 bg-white">
                     <input type="tel" id="customerPhone" required placeholder="رقم الهاتف" class="w-full border rounded-lg p-2 text-sm bg-white">
                 </div>
 
-                <!-- الخطوة 2 -->
                 <div class="mb-3 bg-gray-50 p-3 rounded-lg border">
                     <label class="block text-xs font-bold text-green-800 mb-1">2. عنوان الشحن:</label>
                     <select id="governorateSelect" required class="w-full border rounded-lg p-2 text-sm mb-2 bg-white" onchange="updateTotal()">
                         <option value="">اختر المحافظة...</option>
                     </select>
-                    <textarea id="customerAddress" required rows="2" placeholder="العنوان بالتفصيل (المنطقة، الشارع، أقرب نقطة دالة)" class="w-full border rounded-lg p-2 text-sm bg-white"></textarea>
+                    <textarea id="customerAddress" required rows="2" placeholder="العنوان بالتفصيل" class="w-full border rounded-lg p-2 text-sm bg-white"></textarea>
                 </div>
 
-                <!-- الخطوة 3 -->
                 <div class="mb-3 bg-gray-50 p-3 rounded-lg border">
                     <label class="block text-xs font-bold text-green-800 mb-1">3. طريقة الدفع:</label>
                     <select id="paymentMethod" onchange="togglePaymentDetails()" class="w-full border rounded-lg p-2 text-sm bg-white">
@@ -86,9 +83,9 @@
         </div>
     </div>
 
-    <!-- جافاسكريبت المتجر -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec"; // استبدل برابطك الفعلي
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec"; // استبدل برابط الـ Web App الفعلي
+        const BUSINESS_WHATSAPP = "9647782292062"; // رقم واتساب الأعمال الخاص بك
 
         let allProducts = [];
         let filteredProducts = [];
@@ -282,7 +279,6 @@
         function submitOrder(e) {
             e.preventDefault();
             
-            // قفل زر الإرسال لمنع التكرار نهائياً عند الضغط المتكرر
             let submitBtn = document.getElementById('submitOrderBtn');
             submitBtn.disabled = true;
             submitBtn.innerText = "جاري إرسال الطلب...";
@@ -320,16 +316,32 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    alert("تم إرسال طلبك بنجاح برقم: " + data.orderId);
+                    let orderNum = data.orderId;
+                    alert("تم إرسال طلبك وحفظه بنجاح برقم: " + orderNum);
                     
+                    // تجهيز وإرسال رسالة واتساب الأعمال الفورية إلى رقمك 9647782292062
+                    let cartItemsList = cart.map(item => `- ${item.name} (عدد ${item.qty}) = ${item.price * item.qty} د.ع`).join('\n');
+                    let message = `📦 *طلب جديد رقم #${orderNum}*\n\n` +
+                                  `👤 *الاسم:* ${customerName}\n` +
+                                  `📞 *الهاتف:* ${customerPhone}\n` +
+                                  `📍 *المحافظة:* ${governorate}\n` +
+                                  `🏠 *العنوان:* ${address}\n` +
+                                  `💳 *طريقة الدفع:* ${paymentMethod}\n\n` +
+                                  `🛒 *المنتجات:*\n${cartItemsList}\n\n` +
+                                  `🚚 *أجور التوصيل:* ${deliveryFee} د.ع\n` +
+                                  `💰 *المجموع الكلي:* ${totalPrice} د.ع`;
+                    
+                    let waUrl = "https://api.whatsapp.com/send?phone=" + BUSINESS_WHATSAPP + "&text=" + encodeURIComponent(message);
+                    window.open(waUrl, '_blank');
+
                     cart = [];
                     document.getElementById('cartCount').innerText = "0";
                     closeCheckoutModal();
                     document.getElementById('orderForm').reset();
                 } else {
-                    alert("حدث خطأ: " + data.message);
+                    alert("حدث خطأ أثناء حفظ الطلب: " + data.message);
                 }
-                // إعادة تفعيل الزر بعد الانتهاء
+                
                 submitBtn.disabled = false;
                 submitBtn.innerText = "تأكيد وإرسال الطلب";
                 submitBtn.className = "w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition text-sm";
