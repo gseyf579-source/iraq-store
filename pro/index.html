@@ -21,9 +21,7 @@
         <!-- شريط التصنيفات -->
         <div class="mb-6">
             <h2 class="text-lg font-bold mb-2 text-gray-800">التصنيفات</h2>
-            <div id="categoriesContainer" class="flex gap-2 overflow-x-auto pb-2">
-                <!-- سيتم تعبئة التصنيفات تلقائياً -->
-            </div>
+            <div id="categoriesContainer" class="flex gap-2 overflow-x-auto pb-2"></div>
         </div>
 
         <!-- عرض المنتجات -->
@@ -76,10 +74,11 @@
                     </select>
                 </div>
 
-                <!-- صندوق معلومات المحفظة أو الحساب يظهر فقط عند اختيار زين كاش أو ماستركارد -->
-                <div id="paymentDetailsDiv" class="mb-3 hidden bg-gray-50 p-3 rounded-lg border">
-                    <label id="paymentLabel" class="block text-xs font-bold mb-1 text-green-700">رقم المحفظة / رقم الحساب:</label>
-                    <input type="text" id="walletInfo" class="w-full border rounded-lg p-2 text-sm bg-white" placeholder="أدخل رقم الحساب أو رقم التحويل وسند الحوالة">
+                <!-- صندوق يعرض رقم محفظة وحساب المتجر مع حقل إدخال رقم سند التحويل -->
+                <div id="paymentDetailsDiv" class="mb-3 hidden bg-gray-50 p-3 rounded-lg border text-xs">
+                    <p id="storeAccountInfo" class="font-bold text-blue-700 mb-2 bg-blue-50 p-2 rounded border border-blue-200"></p>
+                    <label class="block font-bold mb-1 text-gray-700">أدخل رقم التحويل أو رقم السند (Reference No.):</label>
+                    <input type="text" id="walletInfo" class="w-full border rounded-lg p-2 text-sm bg-white" placeholder="مثال: 123456789">
                 </div>
 
                 <div class="border-t pt-3 mb-4 bg-gray-50 p-3 rounded-lg">
@@ -99,6 +98,7 @@
     <!-- جافاسكريبت المتجر -->
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec"; // استبدل برابطك
+        const STORE_WHATSAPP = "9647800000000"; // ⚠️ ضع رقم واتساب الأعمال الخاص بك هنا (بدون علامة +، مع رمز الدولة العراقية 964)
 
         let allProducts = [];
         let filteredProducts = [];
@@ -229,7 +229,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // منع إضافة المنتجات ذات المخزون 0 للسلة
         function addToCart(id, name, price, stock) {
             if (stock <= 0) {
                 alert("عذراً، هذا المنتج نفذ من المخزون ولا يمكن إضافته للسلة!");
@@ -267,14 +266,14 @@
         function togglePaymentDetails() {
             let method = document.getElementById('paymentMethod').value;
             let div = document.getElementById('paymentDetailsDiv');
-            let label = document.getElementById('paymentLabel');
+            let infoBox = document.getElementById('storeAccountInfo');
             
             if (method === "ZainCash") {
                 div.classList.remove('hidden');
-                label.innerText = "رقم محفظة زين كاش / رقم التحويل:";
+                infoBox.innerHTML = "💡 <b>رقم محفظة زين كاش للمتجر:</b> 07800000000<br>(يرجى التحويل حصراً على هذا الرقم وإدخال رقم السند أدناه)";
             } else if (method === "MasterCard") {
                 div.classList.remove('hidden');
-                label.innerText = "رقم البطاقة / مرجع التحويل المالي:";
+                infoBox.innerHTML = "💡 <b>رقم حساب الماستركارد للمتجر:</b> IQ12ABCD000000000000<br>(يرجى التحويل وإدخال رقم مرجع الحوالة أدناه)";
             } else {
                 div.classList.add('hidden');
             }
@@ -313,12 +312,12 @@
                 governorate: governorate,
                 address: address,
                 paymentMethod: paymentMethod,
-                walletInfo: walletInfo || "الدفع عند الاستلام",
+                walletInfo: walletInfo,
+                deliveryFee: deliveryFee,
                 totalPrice: totalPrice,
                 cart: cart
             };
 
-            // إرسال الطلب إلى جدول Google Sheets (ورقتي Orders و Order_Items)
             fetch(WEB_APP_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -327,18 +326,21 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    alert("تم إرسال طلبك وحفظه بنجاح برقم: " + data.orderId);
+                    alert("تم إرسال طلبك بنجاح برقم: " + data.orderId);
                     
-                    // توليد رسالة واتساب اختيارية للإرسال الفوري لـ WhatsApp Business
-                    let waText = `طلب جديد:%0Aرقم الطلب: ${data.orderId}%0Aالاسم: ${customerName}%0Aالهاتف: ${customerPhone}%0Aالمحافظة: ${governorate}%0Aالعنوان: ${address}%0Aطريقة الدفع: ${paymentMethod} (${walletInfo || 'لا يوجد'})%0Aالإجمالي: ${totalPrice} د.ع`;
-                    // window.open('https://wa.me/964YOUR_PHONE_NUMBER?text=' + waText, '_blank'); // افتح الرابط برقم واتساب الخاص بك إن أردت
+                    // تجهيز رسالة واتساب الأعمال الفورية للطلب
+                    let itemsText = cart.map(i => `- ${i.name} (${i.qty} عدد) = ${i.price * i.qty} د.ع`).join('%0A');
+                    let waText = `🛍️ *طلب شراء جديد*%0A------------------%0A🔢 رقم الطلب: ${data.orderId}%0A👤 الاسم: ${customerName}%0A📞 الهاتف: ${customerPhone}%0A📍 المحافظة: ${governorate}%0A🏠 العنوان: ${address}%0A💳 الدفع: ${paymentMethod} ${walletInfo ? '[سند: '+walletInfo+']' : ''}%0A------------------%0A📦 *المنتجات:*%0A${itemsText}%0A------------------%0A💰 *الإجمالي مع التوصيل:* ${totalPrice} د.ع`;
+                    
+                    // فتح واتساب الأعمال تلقائياً لإرسال التفاصيل لك
+                    window.open(`https://wa.me/${STORE_WHATSAPP}?text=${waText}`, '_blank');
 
                     cart = [];
                     document.getElementById('cartCount').innerText = "0";
                     closeCheckoutModal();
                     document.getElementById('orderForm').reset();
                 } else {
-                    alert("حدث خطأ أثناء إرسال الطلب: " + data.message);
+                    alert("حدث خطأ: " + data.message);
                 }
             })
             .catch(err => {
