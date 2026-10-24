@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجري الإلكتروني</title>
-    <!-- Tailwind CSS للتصميم -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -19,28 +18,25 @@
     </header>
 
     <main class="max-w-6xl mx-auto p-4">
-        <!-- شريط التصنيفات (Categories Filter) -->
+        <!-- شريط التصنيفات -->
         <div class="mb-6">
             <h2 class="text-lg font-bold mb-2 text-gray-800">التصنيفات</h2>
             <div id="categoriesContainer" class="flex gap-2 overflow-x-auto pb-2">
-                <button onclick="filterCategory('الكل')" class="category-btn bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition">الكل</button>
                 <!-- سيتم تعبئة التصنيفات تلقائياً -->
             </div>
         </div>
 
-        <!-- قسم عرض المنتجات -->
+        <!-- عرض المنتجات -->
         <h2 class="text-2xl font-bold mb-4 text-gray-800">المنتجات المتوفرة</h2>
         <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <p class="col-span-full text-center text-gray-500 py-10">جاري تحميل المنتجات...</p>
         </div>
 
-        <!-- أزرار التنقل بين الصفحات (Pagination) -->
-        <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-8">
-            <!-- سيتم توليد أرقام الصفحات هنا تلقائياً -->
-        </div>
+        <!-- أزرار التنقل بين الصفحات -->
+        <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-8"></div>
     </main>
 
-    <!-- نافذة إتمام الطلب (Checkout Modal) -->
+    <!-- نافذة إتمام الطلب -->
     <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50 p-4">
         <div class="bg-white rounded-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl">
             <button onclick="closeCheckoutModal()" class="absolute top-4 left-4 text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
@@ -50,34 +46,40 @@
             <form id="orderForm" onsubmit="submitOrder(event)">
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">الاسم الكامل:</label>
-                    <input type="text" id="customerName" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm">
+                    <input type="text" id="customerName" required class="w-full border rounded-lg p-2 text-sm">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">رقم الهاتف:</label>
-                    <input type="tel" id="customerPhone" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm">
+                    <input type="tel" id="customerPhone" required class="w-full border rounded-lg p-2 text-sm">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">اختر المحافظة:</label>
-                    <select id="governorateSelect" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm" onchange="updateTotal()">
+                    <select id="governorateSelect" required class="w-full border rounded-lg p-2 text-sm" onchange="updateTotal()">
                         <option value="">جاري تحميل المحافظات...</option>
                     </select>
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">العنوان بالتفصيل:</label>
-                    <textarea id="customerAddress" required rows="2" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm"></textarea>
+                    <textarea id="customerAddress" required rows="2" class="w-full border rounded-lg p-2 text-sm"></textarea>
                 </div>
 
-                <!-- طريقة الدفع (Payment Method) -->
-                <div class="mb-4">
+                <!-- طريقة الدفع -->
+                <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">طريقة الدفع:</label>
-                    <select id="paymentMethod" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm">
-                        <option value="Cash on Delivery">الدفع عند الاستلام (Cash on Delivery)</option>
+                    <select id="paymentMethod" onchange="togglePaymentDetails()" class="w-full border rounded-lg p-2 text-sm">
+                        <option value="Cash on Delivery">الدفع عند الاستلام</option>
                         <option value="ZainCash">زين كاش (ZainCash)</option>
                         <option value="MasterCard">بطاقة ائتمانية / ماستركارد</option>
                     </select>
+                </div>
+
+                <!-- صندوق معلومات المحفظة أو الحساب يظهر فقط عند اختيار زين كاش أو ماستركارد -->
+                <div id="paymentDetailsDiv" class="mb-3 hidden bg-gray-50 p-3 rounded-lg border">
+                    <label id="paymentLabel" class="block text-xs font-bold mb-1 text-green-700">رقم المحفظة / رقم الحساب:</label>
+                    <input type="text" id="walletInfo" class="w-full border rounded-lg p-2 text-sm bg-white" placeholder="أدخل رقم الحساب أو رقم التحويل وسند الحوالة">
                 </div>
 
                 <div class="border-t pt-3 mb-4 bg-gray-50 p-3 rounded-lg">
@@ -96,15 +98,14 @@
 
     <!-- جافاسكريبت المتجر -->
     <script>
-        // ⚠️ ضع رابط الـ Web App الخاص بك هنا:
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec"; // استبدل برابطك
 
         let allProducts = [];
         let filteredProducts = [];
         let deliveryZonesData = [];
         let cart = [];
         let currentPage = 1;
-        const itemsPerPage = 8; // عدد المنتجات في كل صفحة
+        const itemsPerPage = 8;
         let currentCategory = "الكل";
 
         window.onload = function() {
@@ -112,7 +113,6 @@
             loadGovernorates();
         };
 
-        // 1. جلب المنتجات وتوليد التصنيفات
         function loadProducts() {
             fetch(WEB_APP_URL)
                 .then(res => res.json())
@@ -128,7 +128,6 @@
                 .catch(err => console.error("Error loading products:", err));
         }
 
-        // 2. جلب المحافظات
         function loadGovernorates() {
             fetch(WEB_APP_URL + "?action=zones")
                 .then(res => res.json())
@@ -145,18 +144,20 @@
                 .catch(err => console.error("Error loading zones:", err));
         }
 
-        // إعداد أزرار التصنيفات بناءً على المنتجات الموجودة
         function setupCategories() {
             const categoriesSet = new Set(allProducts.map(p => p.category).filter(Boolean));
             const container = document.getElementById('categoriesContainer');
-            container.innerHTML = `<button onclick="filterCategory('الكل')" class="category-btn bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition">الكل</button>`;
+            
+            let allActive = currentCategory === "الكل" ? "bg-green-600 text-white" : "bg-white text-gray-700 border hover:bg-gray-100";
+            container.innerHTML = `<button onclick="filterCategory('الكل')" class="category-btn ${allActive} px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition">الكل</button>`;
             
             categoriesSet.forEach(cat => {
-                container.innerHTML += `<button onclick="filterCategory('${cat}')" class="category-btn bg-white text-gray-700 border px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap hover:bg-gray-100 transition">${cat}</button>`;
+                let isActive = currentCategory === cat;
+                let btnClass = isActive ? "bg-green-600 text-white" : "bg-white text-gray-700 border hover:bg-gray-100";
+                container.innerHTML += `<button onclick="filterCategory('${cat}')" class="category-btn ${btnClass} px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap transition">${cat}</button>`;
             });
         }
 
-        // تصفية المنتجات حسب التصنيف
         function filterCategory(category) {
             currentCategory = category;
             currentPage = 1;
@@ -167,20 +168,11 @@
                 filteredProducts = allProducts.filter(p => p.category === category);
             }
 
-            // تحديث تصميم الأزرار النشطة
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                if (btn.innerText === category) {
-                    btn.className = "category-btn bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition";
-                } else {
-                    btn.className = "category-btn bg-white text-gray-700 border px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap hover:bg-gray-100 transition";
-                }
-            });
-
+            setupCategories();
             renderProducts();
             renderPagination();
         }
 
-        // عرض المنتجات حسب الصفحة الحالية
         function renderProducts() {
             const grid = document.getElementById('productsGrid');
             grid.innerHTML = "";
@@ -195,20 +187,24 @@
             const pageItems = filteredProducts.slice(start, end);
 
             pageItems.forEach(p => {
+                let stockNum = parseInt(p.stock) || 0;
+                let isOutOfStock = stockNum <= 0;
+                
                 grid.innerHTML += `
-                    <div class="bg-white rounded-xl shadow p-3 flex flex-col justify-between border">
+                    <div class="bg-white rounded-xl shadow p-3 flex flex-col justify-between border ${isOutOfStock ? 'opacity-60' : ''}">
                         <img src="${p.imageUrl}" alt="${p.nameAr}" class="w-full h-36 object-cover rounded-lg mb-2" onerror="this.src='https://via.placeholder.com/150?text=Image+Error'">
                         <h3 class="font-bold text-gray-800 text-xs mb-1 truncate">${p.nameAr}</h3>
-                        <p class="text-green-600 font-bold text-xs mb-2">${p.price} د.ع</p>
-                        <button onclick="addToCart('${p.id}', '${p.nameAr}', ${p.price})" class="bg-green-600 text-white text-xs py-2 rounded-lg font-bold hover:bg-green-700 transition">
-                            إضافة للسلة
+                        <p class="text-green-600 font-bold text-xs mb-1">${p.price} د.ع</p>
+                        <p class="text-xs text-gray-500 mb-2">المتوفر: ${stockNum}</p>
+                        <button onclick="addToCart('${p.id}', '${p.nameAr}', ${p.price}, ${stockNum})" 
+                            class="${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white text-xs py-2 rounded-lg font-bold transition">
+                            ${isOutOfStock ? 'نفذت الكمية' : 'إضافة للسلة'}
                         </button>
                     </div>
                 `;
             });
         }
 
-        // رسم أزرار التنقل بين الصفحات (Pagination)
         function renderPagination() {
             const container = document.getElementById('paginationContainer');
             container.innerHTML = "";
@@ -233,9 +229,25 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function addToCart(id, name, price) {
-            cart.push({ id, name, price });
-            document.getElementById('cartCount').innerText = cart.length;
+        // منع إضافة المنتجات ذات المخزون 0 للسلة
+        function addToCart(id, name, price, stock) {
+            if (stock <= 0) {
+                alert("عذراً، هذا المنتج نفذ من المخزون ولا يمكن إضافته للسلة!");
+                return;
+            }
+
+            let existing = cart.find(item => item.id === id);
+            if (existing) {
+                if (existing.qty >= stock) {
+                    alert("لقد وصلت إلى الحد الأقصى المتوفر في المخزون لهذا المنتج!");
+                    return;
+                }
+                existing.qty++;
+            } else {
+                cart.push({ id, name, price, qty: 1 });
+            }
+            
+            document.getElementById('cartCount').innerText = cart.reduce((sum, item) => sum + item.qty, 0);
             alert("تمت الإضافة إلى السلة بنجاح!");
         }
 
@@ -252,8 +264,24 @@
             document.getElementById('checkoutModal').classList.add('hidden');
         }
 
+        function togglePaymentDetails() {
+            let method = document.getElementById('paymentMethod').value;
+            let div = document.getElementById('paymentDetailsDiv');
+            let label = document.getElementById('paymentLabel');
+            
+            if (method === "ZainCash") {
+                div.classList.remove('hidden');
+                label.innerText = "رقم محفظة زين كاش / رقم التحويل:";
+            } else if (method === "MasterCard") {
+                div.classList.remove('hidden');
+                label.innerText = "رقم البطاقة / مرجع التحويل المالي:";
+            } else {
+                div.classList.add('hidden');
+            }
+        }
+
         function updateTotal() {
-            let subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
             let select = document.getElementById('governorateSelect');
             let selectedOption = select.options[select.selectedIndex];
             let deliveryFee = selectedOption && selectedOption.getAttribute('data-price') ? parseFloat(selectedOption.getAttribute('data-price')) : 0;
@@ -264,10 +292,59 @@
 
         function submitOrder(e) {
             e.preventDefault();
-            alert("تم إرسال طلبك بنجاح! شكراً لتسوقك معنا.");
-            cart = [];
-            document.getElementById('cartCount').innerText = "0";
-            closeCheckoutModal();
+            
+            let customerName = document.getElementById('customerName').value;
+            let customerPhone = document.getElementById('customerPhone').value;
+            let governorate = document.getElementById('governorateSelect').value;
+            let address = document.getElementById('customerAddress').value;
+            let paymentMethod = document.getElementById('paymentMethod').value;
+            let walletInfo = document.getElementById('walletInfo').value;
+            
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let select = document.getElementById('governorateSelect');
+            let selectedOption = select.options[select.selectedIndex];
+            let deliveryFee = selectedOption && selectedOption.getAttribute('data-price') ? parseFloat(selectedOption.getAttribute('data-price')) : 0;
+            let totalPrice = subtotal + deliveryFee;
+
+            let orderData = {
+                action: "order",
+                customerName: customerName,
+                customerPhone: customerPhone,
+                governorate: governorate,
+                address: address,
+                paymentMethod: paymentMethod,
+                walletInfo: walletInfo || "الدفع عند الاستلام",
+                totalPrice: totalPrice,
+                cart: cart
+            };
+
+            // إرسال الطلب إلى جدول Google Sheets (ورقتي Orders و Order_Items)
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(orderData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("تم إرسال طلبك وحفظه بنجاح برقم: " + data.orderId);
+                    
+                    // توليد رسالة واتساب اختيارية للإرسال الفوري لـ WhatsApp Business
+                    let waText = `طلب جديد:%0Aرقم الطلب: ${data.orderId}%0Aالاسم: ${customerName}%0Aالهاتف: ${customerPhone}%0Aالمحافظة: ${governorate}%0Aالعنوان: ${address}%0Aطريقة الدفع: ${paymentMethod} (${walletInfo || 'لا يوجد'})%0Aالإجمالي: ${totalPrice} د.ع`;
+                    // window.open('https://wa.me/964YOUR_PHONE_NUMBER?text=' + waText, '_blank'); // افتح الرابط برقم واتساب الخاص بك إن أردت
+
+                    cart = [];
+                    document.getElementById('cartCount').innerText = "0";
+                    closeCheckoutModal();
+                    document.getElementById('orderForm').reset();
+                } else {
+                    alert("حدث خطأ أثناء إرسال الطلب: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Order error:", err);
+                alert("حدث خطأ في الاتصال بالخادم.");
+            });
         }
     </script>
 </body>
