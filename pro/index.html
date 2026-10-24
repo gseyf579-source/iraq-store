@@ -4,68 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجري الإلكتروني</title>
-    <!-- Tailwind CSS للتصميم السريع والجميل -->
+    <!-- Tailwind CSS للتصميم -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans pb-12">
 
     <!-- هيدر المتجر -->
     <header class="bg-white shadow-md sticky top-0 z-50 p-4 flex justify-between items-center">
         <h1 class="text-xl font-bold text-green-700"><i class="fa-solid fa-store"></i> متجري الإلكتروني</h1>
-        <button onclick="openCheckoutModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow font-bold">
+        <button onclick="openCheckoutModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow font-bold text-sm">
             <i class="fa-solid fa-cart-shopping"></i> إتمام الطلب (<span id="cartCount">0</span>)
         </button>
     </header>
 
-    <!-- قسم عرض المنتجات -->
     <main class="max-w-6xl mx-auto p-4">
+        <!-- شريط التصنيفات (Categories Filter) -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2 text-gray-800">التصنيفات</h2>
+            <div id="categoriesContainer" class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterCategory('الكل')" class="category-btn bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition">الكل</button>
+                <!-- سيتم تعبئة التصنيفات تلقائياً -->
+            </div>
+        </div>
+
+        <!-- قسم عرض المنتجات -->
         <h2 class="text-2xl font-bold mb-4 text-gray-800">المنتجات المتوفرة</h2>
         <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- سيتم تعبئة المنتجات تلقائياً عبر الجافاسكريبت -->
             <p class="col-span-full text-center text-gray-500 py-10">جاري تحميل المنتجات...</p>
+        </div>
+
+        <!-- أزرار التنقل بين الصفحات (Pagination) -->
+        <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-8">
+            <!-- سيتم توليد أرقام الصفحات هنا تلقائياً -->
         </div>
     </main>
 
     <!-- نافذة إتمام الطلب (Checkout Modal) -->
     <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50 p-4">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeCheckoutModal()" class="absolute top-4 left-4 text-gray-500 hover:text-black text-xl font-bold">&times;</button>
+        <div class="bg-white rounded-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+            <button onclick="closeCheckoutModal()" class="absolute top-4 left-4 text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
             
-            <h3 class="text-xl font-bold mb-4 text-gray-800">إتمام الطلب</h3>
+            <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">إتمام الطلب</h3>
             
             <form id="orderForm" onsubmit="submitOrder(event)">
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">الاسم الكامل:</label>
-                    <input type="text" id="customerName" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                    <input type="text" id="customerName" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">رقم الهاتف:</label>
-                    <input type="tel" id="customerPhone" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                    <input type="tel" id="customerPhone" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">اختر المحافظة:</label>
-                    <!-- قائمة المحافظات التي ستجلب البيانات تلقائياً من Google Sheets -->
-                    <select id="governorateSelect" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500" onchange="updateTotal()">
+                    <select id="governorateSelect" required class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm" onchange="updateTotal()">
                         <option value="">جاري تحميل المحافظات...</option>
                     </select>
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-sm font-semibold mb-1">العنوان بالتفصيل:</label>
-                    <textarea id="customerAddress" required rows="2" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500"></textarea>
+                    <textarea id="customerAddress" required rows="2" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm"></textarea>
                 </div>
 
-                <div class="border-t pt-3 mb-4">
-                    <div class="flex justify-between font-bold text-lg">
-                        <span>الإجمالي الكلي:</span>
-                        <span id="totalPrice">0 د.ع</span>
+                <!-- طريقة الدفع (Payment Method) -->
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-1">طريقة الدفع:</label>
+                    <select id="paymentMethod" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500 text-sm">
+                        <option value="Cash on Delivery">الدفع عند الاستلام (Cash on Delivery)</option>
+                        <option value="ZainCash">زين كاش (ZainCash)</option>
+                        <option value="MasterCard">بطاقة ائتمانية / ماستركارد</option>
+                    </select>
+                </div>
+
+                <div class="border-t pt-3 mb-4 bg-gray-50 p-3 rounded-lg">
+                    <div class="flex justify-between font-bold text-base text-gray-800">
+                        <span>الإجمالي الكلي (مع التوصيل):</span>
+                        <span id="totalPrice" class="text-green-600">0 د.ع</span>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition">
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold shadow hover:bg-green-700 transition text-sm">
                     تأكيد وإرسال الطلب
                 </button>
             </form>
@@ -74,45 +96,39 @@
 
     <!-- جافاسكريبت المتجر -->
     <script>
-        // ⚠️ ضع رابط الـ Web App الخاص بـ Google Apps Script هنا حصراً:
+        // ⚠️ ضع رابط الـ Web App الخاص بك هنا:
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5WhfnkEt8LoFlx7P15O4pRnCtO8Dwm-nriqK2R03WnsidMplWTLmsdpuFd0_tjDFA/exec";
 
-        let cart = [];
+        let allProducts = [];
+        let filteredProducts = [];
         let deliveryZonesData = [];
+        let cart = [];
+        let currentPage = 1;
+        const itemsPerPage = 8; // عدد المنتجات في كل صفحة
+        let currentCategory = "الكل";
 
-        // عند تحميل الصفحة، جلب المنتجات والمحافظات
         window.onload = function() {
             loadProducts();
             loadGovernorates();
         };
 
-        // 1. جلب المنتجات وعرضها
+        // 1. جلب المنتجات وتوليد التصنيفات
         function loadProducts() {
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        const grid = document.getElementById('productsGrid');
-                        grid.innerHTML = "";
-                        
-                        data.products.forEach(p => {
-                            grid.innerHTML += `
-                                <div class="bg-white rounded-xl shadow p-3 flex flex-col justify-between">
-                                    <img src="${p.imageUrl}" alt="${p.nameAr}" class="w-full h-40 object-cover rounded-lg mb-2" onerror="this.src='https://via.placeholder.com/150?text=Image+Error'">
-                                    <h3 class="font-bold text-gray-800 text-sm mb-1">${p.nameAr}</h3>
-                                    <p class="text-green-600 font-bold text-sm mb-2">${p.price} د.ع</p>
-                                    <button onclick="addToCart('${p.id}', '${p.nameAr}', ${p.price})" class="bg-green-600 text-white text-xs py-2 rounded-lg font-bold hover:bg-green-700 transition">
-                                        إضافة للسلة
-                                    </button>
-                                </div>
-                            `;
-                        });
+                        allProducts = data.products;
+                        filteredProducts = allProducts;
+                        setupCategories();
+                        renderProducts();
+                        renderPagination();
                     }
                 })
                 .catch(err => console.error("Error loading products:", err));
         }
 
-        // 2. جلب المحافظات وأسعار التوصيل من جدول Delivery_Zones[cite: 4]
+        // 2. جلب المحافظات
         function loadGovernorates() {
             fetch(WEB_APP_URL + "?action=zones")
                 .then(res => res.json())
@@ -121,13 +137,100 @@
                         deliveryZonesData = data.zones;
                         const select = document.getElementById('governorateSelect');
                         select.innerHTML = '<option value="">اختر المحافظة...</option>';
-                        
                         deliveryZonesData.forEach(zone => {
                             select.innerHTML += `<option value="${zone.name}" data-price="${zone.price}">${zone.name} (${zone.price} د.ع)</option>`;
                         });
                     }
                 })
                 .catch(err => console.error("Error loading zones:", err));
+        }
+
+        // إعداد أزرار التصنيفات بناءً على المنتجات الموجودة
+        function setupCategories() {
+            const categoriesSet = new Set(allProducts.map(p => p.category).filter(Boolean));
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = `<button onclick="filterCategory('الكل')" class="category-btn bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition">الكل</button>`;
+            
+            categoriesSet.forEach(cat => {
+                container.innerHTML += `<button onclick="filterCategory('${cat}')" class="category-btn bg-white text-gray-700 border px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap hover:bg-gray-100 transition">${cat}</button>`;
+            });
+        }
+
+        // تصفية المنتجات حسب التصنيف
+        function filterCategory(category) {
+            currentCategory = category;
+            currentPage = 1;
+            
+            if (category === "الكل") {
+                filteredProducts = allProducts;
+            } else {
+                filteredProducts = allProducts.filter(p => p.category === category);
+            }
+
+            // تحديث تصميم الأزرار النشطة
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.innerText === category) {
+                    btn.className = "category-btn bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow whitespace-nowrap transition";
+                } else {
+                    btn.className = "category-btn bg-white text-gray-700 border px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap hover:bg-gray-100 transition";
+                }
+            });
+
+            renderProducts();
+            renderPagination();
+        }
+
+        // عرض المنتجات حسب الصفحة الحالية
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = "";
+
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-gray-500 py-10">لا توجد منتجات متوفرة حالياً</p>`;
+                return;
+            }
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredProducts.slice(start, end);
+
+            pageItems.forEach(p => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-xl shadow p-3 flex flex-col justify-between border">
+                        <img src="${p.imageUrl}" alt="${p.nameAr}" class="w-full h-36 object-cover rounded-lg mb-2" onerror="this.src='https://via.placeholder.com/150?text=Image+Error'">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1 truncate">${p.nameAr}</h3>
+                        <p class="text-green-600 font-bold text-xs mb-2">${p.price} د.ع</p>
+                        <button onclick="addToCart('${p.id}', '${p.nameAr}', ${p.price})" class="bg-green-600 text-white text-xs py-2 rounded-lg font-bold hover:bg-green-700 transition">
+                            إضافة للسلة
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // رسم أزرار التنقل بين الصفحات (Pagination)
+        function renderPagination() {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = "";
+
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            if (totalPages <= 1) return;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const activeClass = i === currentPage ? "bg-green-600 text-white" : "bg-white text-gray-700 border hover:bg-gray-100";
+                container.innerHTML += `
+                    <button onclick="changePage(${i})" class="w-9 h-9 rounded-lg font-bold text-sm shadow-sm transition ${activeClass}">
+                        ${i}
+                    </button>
+                `;
+            }
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderProducts();
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function addToCart(id, name, price) {
@@ -161,7 +264,7 @@
 
         function submitOrder(e) {
             e.preventDefault();
-            alert("تم إرسال طلبك بنجاح! شكراً لك.");
+            alert("تم إرسال طلبك بنجاح! شكراً لتسوقك معنا.");
             cart = [];
             document.getElementById('cartCount').innerText = "0";
             closeCheckoutModal();
