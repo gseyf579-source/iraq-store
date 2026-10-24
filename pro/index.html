@@ -319,7 +319,7 @@
                     let orderNum = data.orderId;
                     alert("تم إرسال طلبك وحفظه بنجاح برقم: " + orderNum);
                     
-                    // تجهيز وإرسال رسالة واتساب الأعمال الفورية إلى رقمك 9647782292062
+                    // تجهيز نص رسالة الواتساب
                     let cartItemsList = cart.map(item => `- ${item.name} (عدد ${item.qty}) = ${item.price * item.qty} د.ع`).join('\n');
                     let message = `📦 *طلب جديد رقم #${orderNum}*\n\n` +
                                   `👤 *الاسم:* ${customerName}\n` +
@@ -331,13 +331,15 @@
                                   `🚚 *أجور التوصيل:* ${deliveryFee} د.ع\n` +
                                   `💰 *المجموع الكلي:* ${totalPrice} د.ع`;
                     
-                    let waUrl = "https://api.whatsapp.com/send?phone=" + BUSINESS_WHATSAPP + "&text=" + encodeURIComponent(message);
-                    window.open(waUrl, '_blank');
+                    // فتح رابط المراسلة الشامل للتكيف مع رقمك الشخصي
+                    let waUrl = "https://wa.me/" + BUSINESS_WHATSAPP + "?text=" + encodeURIComponent(message);
+                    window.location.href = waUrl; // فتح التطبيق مباشرة على الهاتف
 
                     cart = [];
                     document.getElementById('cartCount').innerText = "0";
                     closeCheckoutModal();
                     document.getElementById('orderForm').reset();
+                    loadProducts(); // إعادة جلب المنتجات لتحديث أرقام المخزون في الصفحة
                 } else {
                     alert("حدث خطأ أثناء حفظ الطلب: " + data.message);
                 }
